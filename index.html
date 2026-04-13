@@ -1,0 +1,3023 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async defer></script>
+<title>DP Gestão</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
+body{background:#0f172a;color:#fff;min-height:100vh}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;min-width:220px;background:#0a0f1e;display:flex;flex-direction:column;min-height:100vh;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:52px;background:#0a0f1e;border-bottom:1px solid #1e293b;display:flex;align-items:center;padding:0 20px;gap:12px;position:sticky;top:0;z-index:10}
+.content{flex:1;padding:20px;overflow:auto}
+.page{display:none}.page.on{display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* ── SIDEBAR ── */
+.sb-logo{padding:16px 14px;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:9px}
+.sb-icon{width:32px;height:32px;border-radius:8px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-icon svg{width:17px;height:17px;fill:#fff}
+.sb-name{font-size:13px;font-weight:500;color:#fff}
+.sb-tag{font-size:10px;color:#475569}
+.sb-sec{padding:12px 12px 3px;color:#334155;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.si{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;margin:1px 5px;color:#64748b;font-size:12px;border:none;background:transparent;width:calc(100% - 10px);text-align:left;transition:all .15s}
+.si svg{width:15px;height:15px;fill:currentColor;flex-shrink:0}
+.si:hover{background:#1e293b;color:#94a3b8}
+.si.on{background:#1e3a6e;color:#60a5fa}
+.sb-bot{margin-top:auto;padding:10px;border-top:1px solid #1e293b}
+.sb-user{display:flex;align-items:center;gap:8px;padding:7px;border-radius:7px;cursor:pointer}
+.sb-user:hover{background:#1e293b}
+.sb-av{width:28px;height:28px;border-radius:50%;background:#1e3a6e;display:flex;align-items:center;justify-content:center;color:#60a5fa;font-size:10px;font-weight:500;flex-shrink:0}
+
+/* ── CARDS ── */
+.card{background:#1e293b;border-radius:12px;padding:16px;margin-bottom:14px}
+.card-title{color:#fff;font-size:13px;font-weight:500;margin-bottom:12px}
+.card-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+
+/* ── FORMS ── */
+.lbl{color:#94a3b8;font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;display:block}
+.inp{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:9px 11px;color:#fff;font-size:13px;outline:none;transition:border .15s}
+.inp:focus{border-color:#2563eb}
+.inp.err{border-color:#dc2626}
+.inp::placeholder{color:#334155}
+select.inp{color:#94a3b8}
+.field{margin-bottom:12px}
+.err-msg{color:#f87171;font-size:11px;margin-top:3px;display:none}
+.err-msg.on{display:block}
+.req{color:#ef4444}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.span2{grid-column:span 2}
+
+/* ── BUTTONS ── */
+.btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #334155;background:transparent;color:#94a3b8;transition:all .15s}
+.btn:hover{border-color:#2563eb;color:#fff}
+.btn-p{background:#2563eb;color:#fff;border-color:#2563eb}
+.btn-p:hover{background:#1d4ed8}
+.btn-g{background:#15803d;color:#fff;border-color:#15803d}
+.btn-r{background:#991b1b;color:#fca5a5;border-color:#991b1b}
+.btn-y{background:transparent;border-color:#854d0e;color:#fbbf24}
+.btn-y:hover{background:#451a03}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:6px}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500}
+.b-green{background:#14532d;color:#4ade80}
+.b-gray{background:#374151;color:#9ca3af}
+.b-amber{background:#451a03;color:#fbbf24}
+.b-blue{background:#1e3a6e;color:#60a5fa}
+.b-red{background:#7f1d1d;color:#fca5a5}
+
+/* ── TOAST ── */
+.toast{display:none;border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:12px}
+.toast.on{display:block}
+.t-ok{background:#14532d;color:#4ade80;border:1px solid #166534}
+.t-err{background:#7f1d1d;color:#fca5a5;border:1px solid #991b1b}
+
+/* ── TOGGLE ── */
+.toggle{width:34px;height:19px;border-radius:10px;background:#334155;cursor:pointer;position:relative;border:none;flex-shrink:0;transition:background .2s}
+.toggle.on{background:#2563eb}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:left .2s}
+.toggle.on::after{left:17px}
+
+/* ── EMP ROW ── */
+.emp-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #0f172a;flex-wrap:wrap}
+.emp-row:last-child{border:none}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.emp-info{flex:1;min-width:120px}
+.emp-name{font-size:13px;font-weight:500;color:#fff}
+.emp-sub{font-size:11px;color:#64748b}
+
+/* ── PDF ROW ── */
+.pdf-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #0f172a}
+.pdf-row:last-child{border:none}
+.pdf-icon{width:32px;height:32px;border-radius:7px;background:#7f1d1d;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pdf-icon svg{width:15px;height:15px;fill:#fca5a5}
+
+/* ── NOTIFY OPTIONS ── */
+.notify-box{background:#0f172a;border-radius:9px;padding:12px;margin-bottom:12px}
+.notify-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1e293b}
+.notify-row:last-child{border:none}
+.notify-left{display:flex;align-items:center;gap:8px}
+.n-ico{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.n-ico svg{width:12px;height:12px}
+.n-wz{background:#128c7e}.n-wz svg{fill:#fff}
+.n-em{background:#1e3a6e}.n-em svg{fill:#60a5fa}
+.notify-name{font-size:12px;color:#94a3b8}
+.notify-val{font-size:11px;color:#475569}
+
+/* ── STAT ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat{background:#1e293b;border-radius:10px;padding:14px}
+.stat-n{font-size:24px;font-weight:500;color:#fff}
+.stat-l{font-size:11px;color:#64748b;margin-top:2px}
+.stat-t{font-size:11px;color:#4ade80;margin-top:4px}
+
+/* ── AVISO ── */
+.aviso{padding:12px;background:#0f172a;border-radius:9px;margin-bottom:9px;border-left:3px solid #2563eb}
+.aviso.old{border-left-color:#334155}
+.aviso-title{color:#fff;font-size:13px;font-weight:500;margin-bottom:3px}
+.aviso-txt{color:#94a3b8;font-size:12px;line-height:1.5}
+.aviso-meta{color:#475569;font-size:11px;margin-top:5px}
+
+/* ── AGENDAMENTO ── */
+.ag-box{background:#0f172a;border-radius:9px;padding:12px;margin-bottom:12px}
+.ag-tag{display:inline-flex;align-items:center;gap:5px;background:#1e293b;border:1px solid #334155;border-radius:6px;padding:4px 9px;font-size:11px;margin:3px}
+.ag-tag span{color:#fff}
+.ag-tag small{color:#64748b}
+.ag-tag button{background:none;border:none;color:#475569;cursor:pointer;font-size:14px;line-height:1;padding:0}
+.ag-msg{display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid #0f172a}
+.ag-msg:last-child{border:none}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;overflow-y:auto;padding:20px}
+.overlay.on{display:block}
+.modal{background:#1e293b;border-radius:14px;width:640px;max-width:96vw;border:1px solid #334155;margin:20px auto}
+.modal-head{padding:16px 20px;border-bottom:1px solid #0f172a;display:flex;align-items:center;justify-content:space-between}
+.modal-title{color:#fff;font-size:14px;font-weight:500}
+.modal-x{background:transparent;border:none;color:#64748b;font-size:22px;cursor:pointer;line-height:1;padding:2px 8px}
+.modal-x:hover{color:#fff}
+.modal-body{padding:20px}
+.modal-foot{padding:14px 20px;border-top:1px solid #0f172a;display:flex;justify-content:flex-end;gap:8px}
+.sec-line{display:flex;align-items:center;gap:8px;margin:14px 0 10px}
+.sec-line::before,.sec-line::after{content:'';flex:1;height:1px;background:#334155}
+.sec-txt{color:#475569;font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.prog-bar{background:#0f172a;border-radius:4px;height:4px;margin-bottom:6px}
+.prog-fill{background:#2563eb;height:4px;border-radius:4px;transition:width .3s}
+.prog-txt{color:#64748b;font-size:11px;margin-bottom:6px}
+
+/* ── FICHA ── */
+.ficha-head{background:#0a0f1e;padding:16px;display:flex;align-items:center;gap:14px;border-radius:10px 10px 0 0}
+.ficha-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;flex-shrink:0}
+.ficha-sec{padding:12px 16px;background:#0f172a}
+.ficha-sec-title{color:#475569;font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #1e293b}
+.ficha-row{display:flex;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.ficha-row:last-child{border:none}
+.ficha-lbl{color:#64748b;font-size:12px;min-width:150px;flex-shrink:0}
+.ficha-val{color:#fff;font-size:12px}
+
+/* ── ATESTADO ── */
+.prazo-box{border-radius:8px;padding:10px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.prazo-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ── LOGIN / SPLASH / REGISTER ── */
+.auth-wrap{min-height:100vh;background:#0a0f1e;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-box{background:#1e293b;border-radius:16px;width:420px;max-width:100%;border:1px solid #334155;padding:32px}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px;justify-content:center}
+.auth-logo-icon{width:42px;height:42px;border-radius:12px;background:#2563eb;display:flex;align-items:center;justify-content:center}
+.auth-logo-icon svg{width:22px;height:22px;fill:#fff}
+.auth-title{font-size:20px;font-weight:500;text-align:center;margin-bottom:4px}
+.auth-sub{color:#64748b;font-size:13px;text-align:center;margin-bottom:24px}
+.divider{display:flex;align-items:center;gap:8px;margin:16px 0;color:#334155;font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#334155}
+.big-btn{width:100%;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:8px;transition:all .15s}
+.big-btn-p{background:#2563eb;color:#fff}.big-btn-p:hover{background:#1d4ed8}
+.big-btn-o{background:transparent;border:1px solid #334155;color:#94a3b8}.big-btn-o:hover{border-color:#2563eb;color:#fff}
+
+/* SPLASH */
+.splash{min-height:100vh;background:#0a0f1e;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.splash-icon{width:76px;height:76px;border-radius:20px;background:#2563eb;display:flex;align-items:center;justify-content:center}
+.splash-icon svg{width:40px;height:40px;fill:#fff}
+
+/* FILTER TABS */
+.ftabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.ftab{background:#0f172a;border:none;border-radius:16px;padding:5px 12px;color:#64748b;font-size:11px;cursor:pointer}
+.ftab.on{background:#2563eb;color:#fff}
+
+/* UPLOAD ZONE */
+.upload{border:2px dashed #334155;border-radius:8px;padding:20px;text-align:center;cursor:pointer;color:#475569;font-size:12px;margin-bottom:10px}
+.upload:hover{border-color:#2563eb;color:#94a3b8}
+.upload svg{width:24px;height:24px;fill:#334155;display:block;margin:0 auto 6px}
+
+/* FOTO PERFIL */
+.sb-user-top{padding:10px 12px 8px;border-bottom:1px solid #1e293b}
+.sb-user-top .sb-av{width:42px;height:42px;font-size:14px;border-radius:50%;overflow:hidden;flex-shrink:0}
+.sb-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.photo-preview{width:72px;height:72px;border-radius:50%;overflow:hidden;background:#1e293b;display:flex;align-items:center;justify-content:center;border:2px solid #334155;flex-shrink:0;cursor:pointer;position:relative}
+.photo-preview img{width:100%;height:100%;object-fit:cover}
+.photo-preview-txt{font-size:10px;color:#475569;text-align:center;line-height:1.3}
+.photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;border-radius:50%}
+.photo-preview:hover .photo-overlay{opacity:1}
+.photo-overlay svg{width:18px;height:18px;fill:#fff}
+
+/* ACTIVITY */
+.sol-card{background:#0f172a;border:1px solid #334155;border-radius:9px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.sol-card:last-child{margin-bottom:0}
+.sol-info{flex:1;min-width:0}
+.sol-nome{font-size:13px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sol-sub{font-size:11px;color:#64748b;margin-top:2px}
+.sol-btns{display:flex;gap:6px;flex-shrink:0}
+.act-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #0f172a}
+.act-item:last-child{border:none}
+.act-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.act-txt{font-size:12px;color:#94a3b8;flex:1}
+.act-time{font-size:11px;color:#475569}
+
+@media(max-width:900px){.grid2{grid-template-columns:1fr}.stat-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.g2{grid-template-columns:1fr}.span2{grid-column:span 1}}
+
+/* ── MOBILE SIDEBAR ── */
+.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200}
+.mob-overlay.on{display:block}
+.mob-btn{display:none;background:transparent;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;flex-shrink:0}
+.mob-btn:hover{background:#1e293b}
+.mob-btn svg{width:20px;height:20px;fill:#94a3b8;display:block}
+/* ── CONTROLE DE PAPEL ── */
+.admin-only{display:none!important}
+.func-only{display:none!important}
+.role-admin .admin-only:not(.page){display:block!important}
+.role-admin .admin-only.flex-el:not(.page){display:flex!important}
+.role-func .func-only{display:block!important}
+.role-func .func-only.flex-el{display:flex!important}
+/* dash funcionário */
+.func-dash-card{background:#1e293b;border-radius:12px;padding:16px;border:1px solid #334155}
+.func-notif{background:#0f172a;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;border-left:3px solid #2563eb}
+.func-notif.lida{border-left-color:#334155;opacity:.7}
+.func-status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500}
+.ates-status{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:8px}
+@media(max-width:700px){
+  .sidebar{position:fixed;top:0;left:0;height:100vh;z-index:201;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.5)}
+  .sidebar.mob-open{transform:translateX(0)}
+  .mob-btn{display:flex;align-items:center;justify-content:center}
+  .topbar input{width:120px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SPLASH ══ -->
+<div id="v-splash" class="splash">
+  <div class="splash-icon"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="13" height="17" rx="2"/><rect x="21" y="4" width="13" height="9" rx="2"/><rect x="21" y="17" width="13" height="17" rx="2"/><rect x="4" y="25" width="13" height="9" rx="2"/></svg></div>
+  <div style="font-size:28px;font-weight:500">DP Gestão</div>
+  <div style="color:#64748b;font-size:14px">Sistema de gestão de pessoal</div>
+  <button class="big-btn big-btn-p" style="width:180px;margin-top:16px" onclick="show('v-login')">Entrar no sistema</button>
+</div>
+
+<!-- ══ LOGIN ══ -->
+<div id="v-login" style="display:none">
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <div class="auth-logo-icon"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="13" height="17" rx="2"/><rect x="21" y="4" width="13" height="9" rx="2"/><rect x="21" y="17" width="13" height="17" rx="2"/><rect x="4" y="25" width="13" height="9" rx="2"/></svg></div>
+        <div><div style="font-size:16px;font-weight:500">DP Gestão</div><div style="color:#475569;font-size:11px">Gestão de pessoal</div></div>
+      </div>
+      <div class="auth-title">Bem-vindo de volta</div>
+      <div class="auth-sub">Entre com suas credenciais</div>
+      <div class="field"><label class="lbl">E-mail ou CPF</label><input class="inp" placeholder="seu@email.com ou 000.000.000-00" id="l-email" autocomplete="username" oninput="var p=sel('l-err-pendente');if(p)p.style.display='none';" onkeydown="if(event.key==='Enter')document.getElementById('l-senha').focus()"></div>
+      <div class="field"><label class="lbl">Senha</label><input class="inp" type="password" placeholder="••••••••" id="l-senha" autocomplete="current-password" oninput="var p=sel('l-err-pendente');if(p)p.style.display='none';" onkeydown="if(event.key==='Enter')doLogin('func')"></div>
+      <div class="toast t-err" id="l-err" style="margin-bottom:10px">E-mail/CPF ou senha incorretos.</div>
+      <div class="toast t-err" id="l-err-inativo" style="margin-bottom:10px">Acesso bloqueado. Entre em contato com o administrador.</div>
+      <div class="toast t-ok" id="l-err-pendente" style="margin-bottom:10px;display:none">Cadastro realizado! Aguarde aprovação do administrador.</div>
+      <div class="toast t-err" id="l-err-social" style="margin-bottom:10px">Conta não encontrada no sistema. Solicite cadastro ao administrador.</div>
+      <div class="toast t-err" id="l-err-semsenha" style="margin-bottom:10px">Senha não definida. Solicite ao administrador definir sua senha de acesso.</div>
+      <div class="toast" id="l-err-naocfg" style="margin-bottom:10px;background:#451a03;color:#fbbf24;border:1px solid #854d0e">Login social não configurado. Informe o Client ID nas configurações.</div>
+      <div class="toast t-err" id="l-err-bloqueado" style="margin-bottom:10px">Muitas tentativas incorretas. Aguarde <span id="l-lock-min">5</span> minuto(s) e tente novamente.</div>
+      <button class="big-btn big-btn-p" onclick="doLogin('func')">Entrar no sistema</button>
+      <div class="divider">ou entre com</div>
+      <button class="big-btn" onclick="googleLogin()" style="background:#fff;color:#1f2937;border:none;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:500">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+        Entrar com Google
+      </button>
+      <button class="big-btn" onclick="appleLogin()" style="background:#000;color:#fff;border:none;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:500;margin-top:0">
+        <svg width="17" height="20" viewBox="0 0 814 1000" fill="#fff"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 134.4-317.9 265.8-317.9 70.2 0 128.9 46.4 172.3 46.4 41.3 0 106.2-49.1 184.6-49.1 29.7 0 130.8 2.6 198.3 99.2z"/><path d="M554.2 100.2c32.4-38.1 56-90.9 56-143.7 0-7.3-.6-14.6-1.9-20.6-53.4 2-116.7 35.4-154.9 79.8C422.7-146.6 399.2-94.3 399.2-43.5c0 7.9 1.3 15.8 1.9 18.4 3.2.6 8.5 1.3 13.8 1.3 47.8 0 108.5-31.1 139.3-75.9z"/></svg>
+        Entrar com Apple
+      </button>
+      <div style="text-align:center;margin-top:14px;color:#64748b;font-size:12px">Novo por aqui? <span onclick="abrirCadastro()" style="color:#2563eb;cursor:pointer;font-weight:500">Criar conta</span></div>
+      <div style="text-align:center;margin-top:8px;color:#64748b;font-size:12px">Esqueceu a senha? <span style="color:#2563eb;cursor:pointer">Recuperar</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CADASTRO PÚBLICO ══ -->
+<div id="v-register" style="display:none">
+  <div class="auth-wrap" style="align-items:flex-start;padding:30px 20px">
+    <div style="background:#1e293b;border-radius:16px;width:500px;max-width:100%;border:1px solid #334155;margin:auto">
+      <div style="padding:16px 20px;border-bottom:1px solid #0f172a;display:flex;align-items:center;gap:10px">
+        <button onclick="voltarLogin()" style="background:#0f172a;border:none;border-radius:7px;width:30px;height:30px;color:#64748b;font-size:20px;cursor:pointer" title="Voltar ao login">&#8249;</button>
+        <div style="flex:1"><div style="font-size:14px;font-weight:500">Criar nova conta</div><div style="color:#64748b;font-size:11px">Preencha seus dados para se cadastrar</div></div>
+        <div id="r-draft-badge" style="display:none;background:#1e3a6e;border-radius:5px;padding:3px 8px;font-size:10px;color:#60a5fa">rascunho salvo</div>
+      </div>
+      <div style="padding:20px">
+        <div class="toast t-ok" id="r-ok">Cadastro realizado! Aguarde aprovação do administrador.</div>
+        <div class="toast t-err" id="r-err">Preencha todos os campos obrigatórios corretamente.</div>
+        <div class="prog-txt" id="r-prog-txt">Progresso: 0 de 8 campos</div>
+        <div class="prog-bar"><div class="prog-fill" id="r-prog-fill" style="width:0%"></div></div>
+
+        <!-- Avatar / Foto -->
+        <div style="display:flex;align-items:center;gap:14px;background:#0f172a;border-radius:9px;padding:14px;margin-bottom:14px">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+            <div style="position:relative">
+              <div id="r-av" style="width:60px;height:60px;border-radius:50%;background:#1e3a6e;display:flex;align-items:center;justify-content:center;color:#60a5fa;font-size:18px;font-weight:500;overflow:hidden;border:2px solid #334155">
+                <span id="r-av-ini">?</span>
+                <img id="r-av-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+              </div>
+              <label for="r-foto" style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#2563eb;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #0f172a;box-shadow:0 2px 6px rgba(0,0,0,.4)" title="Adicionar foto">
+                <svg viewBox="0 0 24 24" fill="none" width="11" height="11"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="13" r="3" stroke="#fff" stroke-width="1.5"/></svg>
+              </label>
+            </div>
+            <label for="r-foto" style="font-size:10px;color:#2563eb;cursor:pointer;font-weight:500">Adicionar foto</label>
+            <input type="file" id="r-foto" accept="image/*" style="display:none" onchange="rPreviewFoto(this)">
+          </div>
+          <div><div id="r-av-name" style="font-size:13px;font-weight:500">Seu nome aqui</div><div style="color:#64748b;font-size:11px">Novo usuário · Aguardando aprovação</div></div>
+        </div>
+
+        <div class="sec-line"><span class="sec-txt">Dados pessoais</span></div>
+        <div class="g2">
+          <div class="field span2"><label class="lbl">Nome completo <span class="req">*</span></label><input class="inp" id="r-nome" placeholder="Nome completo" oninput="rUpdate()"><div class="err-msg" id="re-nome">Campo obrigatório</div></div>
+          <div class="field"><label class="lbl">CPF <span class="req">*</span></label><input class="inp" id="r-cpf" placeholder="000.000.000-00" maxlength="14" oninput="maskCPF(this);rUpdate()"><div class="err-msg" id="re-cpf">CPF inválido</div></div>
+          <div class="field"><label class="lbl">Data de nascimento <span class="req">*</span></label><input class="inp" type="date" id="r-nasc" oninput="rUpdate()"><div class="err-msg" id="re-nasc">Campo obrigatório</div></div>
+          <div class="field"><label class="lbl">Sexo</label><select class="inp" id="r-sexo"><option value="">Selecionar</option><option>Masculino</option><option>Feminino</option><option>Prefiro não informar</option></select></div>
+          <div class="field"><label class="lbl">Estado civil</label><select class="inp" id="r-estado"><option value="">Selecionar</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>União estável</option></select></div>
+        </div>
+
+        <div class="sec-line"><span class="sec-txt">Contato</span></div>
+        <div class="g2">
+          <div class="field span2"><label class="lbl">Telefone / WhatsApp <span class="req">*</span></label><input class="inp" id="r-tel" placeholder="(00) 00000-0000" maxlength="15" oninput="maskTel(this);rUpdate()"><div class="err-msg" id="re-tel">Campo obrigatório</div></div>
+          <div class="field"><label class="lbl">E-mail <span class="req">*</span></label><input class="inp" type="email" id="r-email" placeholder="seu@email.com" oninput="rUpdate()"><div class="err-msg" id="re-email">E-mail inválido</div></div>
+          <div class="field"><label class="lbl">Senha <span class="req">*</span></label><div style="position:relative"><input class="inp" type="password" id="r-senha" placeholder="Mínimo 6 caracteres" oninput="rUpdate()" style="padding-right:38px"><button type="button" onclick="toggleSenha('r-senha',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center">
+            <svg id="r-senha-eye" viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button></div><div class="err-msg" id="re-senha">Mínimo 6 caracteres</div></div>
+          <div class="field span2"><label class="lbl">Confirmar senha <span class="req">*</span></label><div style="position:relative"><input class="inp" type="password" id="r-senha2" placeholder="Repita a senha" oninput="rUpdate()" style="padding-right:38px"><button type="button" onclick="toggleSenha('r-senha2',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button></div><div class="err-msg" id="re-senha2">Senhas não coincidem</div></div>
+        </div>
+
+        <div class="sec-line"><span class="sec-txt">Dados profissionais</span></div>
+        <div class="g2">
+          <div class="field"><label class="lbl">Cargo / Função <span class="req">*</span></label><input class="inp" id="r-cargo" placeholder="Ex: Auxiliar Administrativo" oninput="rUpdate()"><div class="err-msg" id="re-cargo">Campo obrigatório</div></div>
+          <div class="field"><label class="lbl">Departamento</label><select class="inp" id="r-dept"><option value="">Selecionar</option><option>Administrativo</option><option>Financeiro</option><option>RH</option><option>TI</option><option>Operacional</option><option>Comercial</option></select></div>
+          <div class="field"><label class="lbl">Tipo de contrato</label><select class="inp" id="r-contrato"><option value="">Selecionar</option><option>CLT</option><option>PJ</option><option>Estágio</option><option>Temporário</option><option>Autônomo</option></select></div>
+          <div class="field"><label class="lbl">Data de admissão</label><input class="inp" type="date" id="r-adm"></div>
+        </div>
+
+        <div class="sec-line"><span class="sec-txt">Filiação</span></div>
+        <div class="g2">
+          <div class="field"><label class="lbl">Nome da mãe</label><input class="inp" id="r-mae" placeholder="Nome completo da mãe"></div>
+          <div class="field"><label class="lbl">Nome do pai</label><input class="inp" id="r-pai" placeholder="Nome completo do pai"></div>
+        </div>
+
+        <div class="sec-line"><span class="sec-txt" style="color:#f87171">Contato de emergência</span></div>
+        <div class="g2">
+          <div class="field"><label class="lbl">Nome <span class="req">*</span></label><input class="inp" id="r-emerg-nome" placeholder="Nome do contato" oninput="rUpdate()"><div class="err-msg" id="re-emerg">Campo obrigatório</div></div>
+          <div class="field"><label class="lbl">Parentesco</label><select class="inp" id="r-emerg-par"><option value="">Selecionar</option><option>Cônjuge</option><option>Mãe</option><option>Pai</option><option>Filho(a)</option><option>Irmão/Irmã</option><option>Outro</option></select></div>
+          <div class="field"><label class="lbl">Telefone</label><input class="inp" id="r-emerg-tel" placeholder="(00) 00000-0000" maxlength="15" oninput="maskTel(this)"></div>
+          <div class="field"><label class="lbl">WhatsApp</label><input class="inp" id="r-emerg-wz" placeholder="(00) 00000-0000" maxlength="15" oninput="maskTel(this)"></div>
+        </div>
+
+        <div style="background:#0f172a;border-radius:8px;padding:12px;margin:12px 0;display:flex;align-items:flex-start;gap:10px">
+          <input type="checkbox" id="r-termos" style="margin-top:2px;accent-color:#2563eb;width:14px;height:14px;flex-shrink:0">
+          <label for="r-termos" style="color:#64748b;font-size:12px;line-height:1.5;cursor:pointer">Confirmo que as informações são verdadeiras e autorizo o uso dos meus dados para fins de gestão de pessoal.</label>
+        </div>
+        <button class="big-btn big-btn-p" onclick="doRegister()">Criar conta</button>
+        <div style="text-align:center;margin-top:10px;color:#64748b;font-size:12px">Já tem conta? <span onclick="voltarLogin()" style="color:#2563eb;cursor:pointer">Fazer login</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="v-app" style="display:none">
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-icon"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="13" height="17" rx="2"/><rect x="21" y="4" width="13" height="9" rx="2"/><rect x="21" y="17" width="13" height="17" rx="2"/><rect x="4" y="25" width="13" height="9" rx="2"/></svg></div>
+      <div><div class="sb-name">DP Gestão</div><div class="sb-tag">Gestão de pessoal</div></div>
+    </div>
+    <!-- Usuário logado — topo da sidebar -->
+    <div class="sb-user-top" id="sb-user-top" onclick="openPerfil()" style="cursor:pointer" title="Ver perfil">
+      <div style="display:flex;align-items:center;gap:9px">
+        <div class="sb-av" id="sb-av-top" style="width:42px;height:42px;border-radius:50%;background:#1e3a6e;display:flex;align-items:center;justify-content:center;color:#60a5fa;font-size:14px;font-weight:500;overflow:hidden;flex-shrink:0">
+          <span id="sb-av-top-txt">?</span>
+        </div>
+        <div style="min-width:0">
+          <div style="font-size:12px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="sb-top-name">Carregando...</div>
+          <div style="font-size:10px;color:#475569" id="sb-top-role">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="sb-sec">Principal</div>
+    <!-- Dashboard admin -->
+    <button class="si on admin-only" id="si-dash" onclick="navTo('p-dash','si-dash','Dashboard')" style="justify-content:space-between">
+      <span style="display:flex;align-items:center;gap:7px"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Dashboard</span>
+      <span id="sb-solicit-badge" style="display:none;background:#b45309;color:#fef3c7;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700"></span>
+    </button>
+    <!-- Dashboard funcionário -->
+    <button class="si func-only" id="si-dash-func" onclick="navTo('p-dash-func','si-dash-func','Início')">
+      <svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9M5 10v9a1 1 0 001 1h4v-4h4v4h4a1 1 0 001-1v-9" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Início
+    </button>
+    <button class="si" id="si-docs" onclick="navTo('p-docs','si-docs','Meus documentos')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg>Documentos
+    </button>
+    <button class="si" id="si-ates" onclick="navTo('p-ates','si-ates','Enviar atestado')">
+      <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9S3 16.97 3 12 7.03 3 12 3s9 4.03 9 9z"/></svg>Atestado
+    </button>
+    <button class="si admin-only" id="si-avisos" onclick="navTo('p-avisos','si-avisos','Avisos')">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>Avisos
+    </button>
+    <button class="si" id="si-com-func" onclick="navTo('p-com-func','si-com-func','Comunicados')">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"/></svg>Comunicados
+    </button>
+    <!-- Perfil funcionário -->
+    <button class="si func-only" id="si-perfil-func" onclick="navTo('p-perfil-func','si-perfil-func','Meu perfil')">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Perfil
+    </button>
+    <div class="sb-sec admin-only">Admin</div>
+    <button class="si admin-only" id="si-func" onclick="navTo('p-func','si-func','Funcionários')">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Funcionários
+    </button>
+    <button class="si admin-only" id="si-empresas" onclick="navTo('p-empresas','si-empresas','Empresas')">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 21h18M3 7l9-4 9 4M4 7v14M20 7v14M8 10v4m4-4v4m4-4v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Empresas
+    </button>
+    <button class="si admin-only" id="si-pdf" onclick="navTo('p-pdf','si-pdf','Enviar documento')">
+      <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>Enviar PDF
+    </button>
+    <button class="si admin-only" id="si-com" onclick="navTo('p-com','si-com','Comunicados Admin')">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"/></svg>Comunicados
+    </button>
+    <button class="si admin-only" id="si-config" onclick="navTo('p-config','si-config','Configurações')">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.5"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.5"/></svg>Configurações
+    </button>
+    <div class="sb-bot">
+      <div class="sb-user" onclick="openPerfil()" title="Ver perfil">
+        <div class="sb-av" id="sb-av-txt">RL</div>
+        <div><div style="font-size:11px;font-weight:500" id="sb-user-name">—</div><div style="color:#475569;font-size:10px" id="sb-user-role">—</div></div>
+      </div>
+      <button onclick="logout()" style="width:100%;margin-top:8px;background:transparent;border:1px solid #334155;border-radius:7px;padding:7px;color:#64748b;font-size:11px;cursor:pointer">Sair da conta</button>
+    </div>
+  </div>
+
+  <!-- Overlay escuro para fechar menu mobile -->
+  <div class="mob-overlay" id="mob-overlay" onclick="closeMobMenu()"></div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <!-- Botão hambúrguer (só aparece no mobile) -->
+      <button class="mob-btn" onclick="openMobMenu()" title="Menu">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      </button>
+      <div style="font-size:14px;font-weight:500;flex:1" id="tb-title">Dashboard</div>
+      <input style="background:#1e293b;border:1px solid #334155;border-radius:7px;padding:6px 10px;color:#94a3b8;font-size:12px;width:180px;outline:none" placeholder="Buscar...">
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page on" id="p-dash">
+        <div style="margin-bottom:16px"><div style="font-size:17px;font-weight:500">Visão geral</div><div style="color:#64748b;font-size:12px;margin-top:2px" id="d-subtitle">Resumo</div></div>
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-n" id="d-total">—</div><div class="stat-l">Funcionários</div><div class="stat-t">cadastrados</div></div>
+          <div class="stat"><div class="stat-n" id="d-ativos">—</div><div class="stat-l">Ativos</div><div class="stat-t">em dia</div></div>
+          <div class="stat"><div class="stat-n" id="d-pendentes">—</div><div class="stat-l">Pendentes</div><div style="font-size:11px;color:#fbbf24;margin-top:4px">aprovação</div></div>
+          <div class="stat" style="cursor:pointer" onclick="navTo('p-ates','si-ates','Atestados')"><div class="stat-n" id="d-ates">—</div><div class="stat-l">Atestados</div><div class="stat-t" id="d-ates-sub">recebidos</div></div>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <div class="card-row"><div class="card-title" style="margin-bottom:0">Funcionários</div><button class="btn btn-sm btn-p" onclick="navTo('p-func','si-func','Funcionários')">Ver todos</button></div>
+            <div id="d-emp-list" style="margin-top:10px"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Documentos enviados recentemente</div>
+            <div id="d-docs-recentes"><div style="color:#64748b;font-size:12px">Nenhum documento enviado ainda.</div></div>
+          </div>
+        </div>
+        <!-- Solicitações pendentes -->
+        <div class="card" id="d-solicit-card" style="margin-top:0;display:none">
+          <div class="card-row" style="margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="card-title" style="margin-bottom:0">Solicitações de cadastro</div>
+              <span id="d-solicit-badge" style="background:#b45309;color:#fef3c7;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:600">0</span>
+            </div>
+          </div>
+          <div id="d-solicit-list"></div>
+        </div>
+        <div class="card" style="margin-top:0">
+          <div class="card-title">Ações rápidas</div>
+          <div class="btn-row">
+            <button class="btn btn-p" onclick="openCad()">+ Novo funcionário</button>
+            <button class="btn btn-p" onclick="navTo('p-pdf','si-pdf','Enviar documento')">+ Enviar PDF</button>
+            <button class="btn" style="background:#128c7e;color:#fff;border-color:#128c7e" onclick="navTo('p-com','si-com','Comunicados')">+ Comunicado</button>
+            <button class="btn" onclick="navTo('p-avisos','si-avisos','Avisos')">+ Aviso</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTOS -->
+      <div class="page" id="p-docs">
+        <div style="margin-bottom:16px">
+          <div style="font-size:17px;font-weight:500" id="docs-page-title">Documentos</div>
+          <div style="color:#64748b;font-size:12px;margin-top:2px" id="docs-page-sub">Arquivos enviados pelo administrador</div>
+        </div>
+        <div class="ftabs" id="docs-tabs">
+          <button class="ftab on" onclick="filtrarDocs('todos',this)">Todos</button>
+          <button class="ftab" onclick="filtrarDocs('Holerite',this)">Holerites</button>
+          <button class="ftab" onclick="filtrarDocs('Contrato',this)">Contratos</button>
+          <button class="ftab" onclick="filtrarDocs('Outros',this)">Outros</button>
+        </div>
+        <div class="card"><div id="meus-docs-list"><div style="color:#64748b;font-size:13px;padding:10px 0">Nenhum documento encontrado.</div></div></div>
+      </div>
+
+      <!-- ATESTADO -->
+      <div class="page" id="p-ates">
+        <div style="margin-bottom:16px"><div style="font-size:17px;font-weight:500">Enviar atestado</div><div style="color:#64748b;font-size:12px;margin-top:2px">Prazo máximo: 48h após a data de emissão</div></div>
+        <div class="grid2">
+          <div class="card">
+            <div class="card-title">Dados do atestado</div>
+            <div class="prazo-box" id="prazo-box" style="background:#1e293b;border:1px solid #334155">
+              <div class="prazo-dot" id="prazo-dot" style="background:#334155"></div>
+              <div style="font-size:12px;color:#94a3b8" id="prazo-txt">Selecione a data de emissão</div>
+            </div>
+            <div id="prazo-err" style="display:none;background:#7f1d1d;border:1px solid #991b1b;border-radius:8px;padding:10px 12px;margin-bottom:10px">
+              <div style="color:#fbbf24;font-size:12px;font-weight:500;margin-bottom:3px">Envio bloqueado — prazo expirado</div>
+              <div style="color:#d97706;font-size:11px;line-height:1.4">Não será possível enviar o atestado, pois está fora do prazo de 48h de emissão. Em caso de dúvidas, entre em contato com o RH.</div>
+            </div>
+            <div id="prazo-ok" style="display:none;background:#14532d;border:1px solid #166534;border-radius:8px;padding:10px 12px;margin-bottom:10px;color:#4ade80;font-size:12px">Dentro do prazo de 48h. Pode enviar.</div>
+            <div class="field"><label class="lbl">Funcionário</label><select class="inp" id="at-func"></select></div>
+            <div class="field"><label class="lbl">Data de emissão <span class="req">*</span></label><input class="inp" type="date" id="at-data" onchange="checkPrazo()" value="2026-03-02"></div>
+            <div class="field"><label class="lbl">Tipo</label><select class="inp" id="at-tipo"><option>Atestado médico</option><option>Atestado odontológico</option><option>Declaração de comparecimento</option><option>Outro</option></select></div>
+            <div class="field"><label class="lbl">Observação</label><textarea class="inp" id="at-obs" rows="2" style="height:auto;padding:8px;resize:none" placeholder="Ex: 2 dias de repouso..."></textarea></div>
+            <input type="file" id="at-file-input" accept=".pdf,image/*" style="display:none" onchange="showFileName(this,'at-file-name');checkAtBtn()">
+            <div class="upload" onclick="document.getElementById('at-file-input').click()" style="cursor:pointer"><svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z" fill="#334155"/></svg>Selecionar arquivo (PDF ou imagem)<div id="at-file-name" style="color:#60a5fa;margin-top:4px;font-size:11px;font-weight:500"></div></div>
+            <div class="toast t-ok" id="t-ates" style="margin-bottom:6px">Atestado enviado com sucesso!</div>
+            <button class="btn btn-p" id="at-btn" style="width:100%;opacity:.4;cursor:not-allowed" onclick="salvarAtestado()" disabled>Enviar atestado</button>
+          </div>
+          <div>
+            <div class="card admin-only" id="ates-recebidos-card">
+              <div class="card-row" style="margin-bottom:10px">
+                <div class="card-title" style="margin-bottom:0">Atestados recebidos</div>
+                <div style="display:flex;gap:6px">
+                  <button class="btn btn-sm" onclick="filtrarAtes('todos',this)" style="font-size:10px" id="atf-todos">Todos</button>
+                  <button class="btn btn-sm" onclick="filtrarAtes('pendente',this)" style="font-size:10px" id="atf-pend">Pendentes</button>
+                  <button class="btn btn-sm" onclick="filtrarAtes('aprovado',this)" style="font-size:10px" id="atf-apr">Aprovados</button>
+                </div>
+              </div>
+              <div id="ates-list"><div style="color:#64748b;font-size:12px;padding:8px 0">Nenhum atestado recebido ainda.</div></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Regra de prazo</div>
+              <div style="color:#94a3b8;font-size:12px;line-height:1.6">O atestado deve ser enviado em até <strong style="color:#fbbf24" id="prazo-horas-txt">48 horas</strong> após a data de emissão.<br><br>Envios fora do prazo são automaticamente bloqueados pelo sistema.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AVISOS -->
+      <div class="page" id="p-avisos">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:17px;font-weight:500">Avisos internos</div>
+            <div style="color:#64748b;font-size:12px;margin-top:2px">Comunicados publicados para os funcionários</div>
+          </div>
+          <button class="btn btn-p admin-only" onclick="abrirModalAviso()" style="display:flex;align-items:center;gap:6px">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+            Novo aviso
+          </button>
+        </div>
+        <div class="toast t-ok" id="t-avi" style="margin-bottom:14px">Aviso publicado com sucesso!</div>
+        <div id="avisos-list">
+          <div style="color:#64748b;font-size:13px;padding:40px 0;text-align:center">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" style="display:block;margin:0 auto 10px;opacity:.3"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="#94a3b8" stroke-width="1.5"/></svg>
+            Nenhum aviso publicado ainda.
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL AVISO -->
+      <div class="overlay" id="ov-aviso" onclick="if(event.target===this)closeOverlay('ov-aviso')">
+        <div class="modal" style="width:480px">
+          <div class="modal-head">
+            <div class="modal-title">Publicar aviso interno</div>
+            <button class="modal-x" onclick="closeOverlay('ov-aviso')">&#215;</button>
+          </div>
+          <div class="modal-body">
+            <div class="field"><label class="lbl">Título <span class="req">*</span></label><input class="inp" id="avi-titulo" placeholder="Ex: Reunião geral — 15/05"></div>
+            <div class="field"><label class="lbl">Mensagem <span class="req">*</span></label><textarea class="inp" id="avi-msg" rows="4" style="height:auto;padding:8px;resize:none" placeholder="Escreva o aviso..."></textarea></div>
+          </div>
+          <div class="modal-foot" style="justify-content:space-between">
+            <button class="btn" onclick="closeOverlay('ov-aviso');navTo('p-com','si-com','Comunicados')" style="font-size:11px">Também enviar por WhatsApp/e-mail</button>
+            <div style="display:flex;gap:8px">
+              <button class="btn" onclick="closeOverlay('ov-aviso')">Cancelar</button>
+              <button class="btn btn-p" onclick="publicarAviso()">Publicar aviso</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FUNCIONÁRIOS -->
+      <div class="page" id="p-func">
+        <div style="margin-bottom:16px"><div style="font-size:17px;font-weight:500">Funcionários</div><div style="color:#64748b;font-size:12px;margin-top:2px">Gerencie a equipe — ative, inative e cadastre</div></div>
+        <div class="toast" id="t-sessao-aviso" style="background:#451a03;color:#fbbf24;border:1px solid #854d0e;position:fixed;top:18px;right:18px;z-index:9999">Sessão expira em 5 minutos por inatividade.</div>
+        <div class="toast t-ok" id="t-func">Operação realizada com sucesso!</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <input class="inp" style="flex:1;min-width:160px" placeholder="Buscar por nome, CPF ou cargo..." oninput="filterEmps(this.value)">
+          <button class="btn btn-p" onclick="openCad()">+ Novo cadastro</button>
+        </div>
+        <div class="ftabs" id="status-tabs">
+          <button class="ftab on" onclick="filterStatus('todos',this)">Todos</button>
+          <button class="ftab" onclick="filterStatus('ativo',this)">Ativos</button>
+          <button class="ftab" onclick="filterStatus('inativo',this)">Inativos</button>
+          <button class="ftab" onclick="filterStatus('pendente',this)">Pendentes</button>
+        </div>
+        <div class="card"><div id="emp-list"></div></div>
+      </div>
+
+      <!-- ENVIAR PDF -->
+      <div class="page" id="p-pdf">
+        <div style="margin-bottom:16px"><div style="font-size:17px;font-weight:500">Enviar documento</div><div style="color:#64748b;font-size:12px;margin-top:2px">Envie arquivos diretamente para o funcionário</div></div>
+        <div class="grid2">
+          <div class="card">
+            <div class="card-title">Dados do envio</div>
+            <div class="toast t-ok" id="t-pdf">Documento enviado com sucesso!</div>
+            <div class="toast t-err" id="t-pdf-err" style="margin-bottom:10px">Selecione o funcionário, tipo, nome e o arquivo.</div>
+            <div class="field"><label class="lbl">Funcionário destinatário</label><select class="inp" id="pdf-dest" onchange="updateNotify()"></select></div>
+            <div class="notify-box">
+              <div style="color:#64748b;font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px">Contato do funcionário</div>
+              <div class="notify-row">
+                <div class="notify-left"><div class="n-ico n-wz"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg></div><div><div class="notify-name">WhatsApp</div><div class="notify-val" id="pdf-wz-val">—</div></div></div>
+              </div>
+              <div class="notify-row">
+                <div class="notify-left"><div class="n-ico n-em"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div><div><div class="notify-name">E-mail</div><div class="notify-val" id="pdf-em-val">—</div></div></div>
+              </div>
+            </div>
+            <div class="field"><label class="lbl">Tipo de documento <span class="req">*</span></label><select class="inp" id="pdf-tipo"><option value="">Selecionar</option><option>Holerite</option><option>Contrato</option><option>Declaração</option><option>Certificado</option><option>Outros</option></select></div>
+            <div class="field"><label class="lbl">Nome / descrição <span class="req">*</span></label><input class="inp" id="pdf-nome" placeholder="Ex: Holerite Abril/2026"></div>
+            <input type="file" id="pdf-file-input" accept=".pdf,image/*" style="display:none" onchange="showFileName(this,'pdf-file-name')">
+            <div class="upload" onclick="document.getElementById('pdf-file-input').click()" style="cursor:pointer"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v11M12 3L8 7m4-4l4 4" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/><path d="M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/></svg>Selecionar arquivo (PDF ou imagem)<div id="pdf-file-name" style="color:#60a5fa;margin-top:4px;font-size:11px;font-weight:500"></div></div>
+            <button class="btn btn-p" style="width:100%;margin-top:4px" onclick="enviarDoc()">Enviar documento</button>
+          </div>
+          <div class="card">
+            <div class="card-row" style="margin-bottom:10px">
+              <div class="card-title" style="margin-bottom:0">Enviados recentemente</div>
+            </div>
+            <div id="docs-enviados-list"><div style="color:#64748b;font-size:12px;padding:8px 0">Nenhum documento enviado ainda.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMUNICADOS + AGENDAMENTO -->
+      <div class="page" id="p-com">
+        <div style="margin-bottom:16px"><div style="font-size:17px;font-weight:500">Comunicados</div><div style="color:#64748b;font-size:12px;margin-top:2px">Envie agora ou agende para um ou mais dias</div></div>
+        <div class="grid2">
+          <div class="card">
+            <div class="card-title">Novo comunicado</div>
+            <div class="toast t-ok" id="t-com">Comunicado enviado/agendado com sucesso!</div>
+
+            <div class="field"><label class="lbl">Destinatário</label><select class="inp" id="com-dest" onchange="updateComNotify()"><option value="todos">Todos os funcionários</option></select></div>
+
+            <div class="notify-box" id="com-notify" style="display:none">
+              <div style="color:#64748b;font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px">Contato selecionado</div>
+              <div class="notify-row">
+                <div class="notify-left"><div class="n-ico n-wz"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg></div><div><div class="notify-name">WhatsApp</div><div class="notify-val" id="com-wz">—</div></div></div>
+                <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="notify-row">
+                <div class="notify-left"><div class="n-ico n-em"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div><div><div class="notify-name">E-mail</div><div class="notify-val" id="com-em">—</div></div></div>
+                <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="lbl">Canal de envio</label>
+              <div class="btn-row">
+                <button class="btn" id="ch-wz" onclick="setCh('wz')" style="flex:1;background:#128c7e;color:#fff;border-color:#128c7e">WhatsApp</button>
+                <button class="btn" id="ch-em" onclick="setCh('em')" style="flex:1;opacity:.5">E-mail</button>
+                <button class="btn" id="ch-both" onclick="setCh('both')" style="flex:1;opacity:.5">Ambos</button>
+              </div>
+            </div>
+
+            <div class="field"><label class="lbl">Título</label><input class="inp" id="com-titulo" placeholder="Ex: Reunião geral — 15/05"></div>
+            <div class="field"><label class="lbl">Mensagem</label><textarea class="inp" id="com-msg" rows="3" style="height:auto;padding:8px;resize:none" placeholder="Escreva o comunicado aqui..."></textarea></div>
+
+            <!-- AGENDAMENTO -->
+            <div class="ag-box">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div style="color:#94a3b8;font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase">Agendamento</div>
+                <div class="btn-row">
+                  <button id="ag-now-btn" onclick="setAg('now')" class="btn btn-sm btn-p">Enviar agora</button>
+                  <button id="ag-sched-btn" onclick="setAg('sched')" class="btn btn-sm">Agendar</button>
+                </div>
+              </div>
+              <div id="ag-now-info" style="color:#64748b;font-size:12px">Mensagem enviada imediatamente ao confirmar.</div>
+              <div id="ag-sched-fields" style="display:none">
+                <div style="color:#64748b;font-size:11px;margin-bottom:8px">Adicione um ou mais dias para envio automático:</div>
+                <div id="ag-tags" style="margin-bottom:8px;min-height:28px"></div>
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                  <input type="date" id="ag-date" class="inp" style="flex:1;min-width:130px">
+                  <input type="time" id="ag-time" class="inp" value="08:00" style="width:100px">
+                  <button class="btn btn-p btn-sm" onclick="addDate()">+ Adicionar</button>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-p" style="width:100%" onclick="sendCom()">Confirmar envio</button>
+          </div>
+
+          <div>
+            <div class="card" style="margin-bottom:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <div class="card-title" style="margin-bottom:0">Mensagens agendadas</div>
+                <span class="badge b-blue" id="ag-count">0</span>
+              </div>
+              <div id="ag-list"><div style="color:#475569;font-size:12px">Nenhuma mensagem agendada.</div></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Histórico enviados</div>
+              <div id="com-historico"><div style="color:#475569;font-size:12px">Nenhum comunicado enviado ainda.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD FUNCIONÁRIO -->
+      <div class="page" id="p-dash-func">
+        <div id="func-dash-header" style="margin-bottom:20px;display:flex;align-items:center;gap:14px">
+          <div id="func-dash-av" style="width:52px;height:52px;border-radius:50%;background:#1e3a6e;display:flex;align-items:center;justify-content:center;color:#60a5fa;font-size:18px;font-weight:600;flex-shrink:0;overflow:hidden;border:2px solid #334155"></div>
+          <div>
+            <div style="font-size:18px;font-weight:500">Olá, <span id="func-dash-nome">—</span> 👋</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:5px">
+              <span id="func-status-badge" class="func-status-badge" style="background:#14532d;color:#4ade80">● Ativo</span>
+              <span id="func-cargo-badge" style="font-size:11px;color:#64748b">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <!-- Último holerite -->
+            <div class="func-dash-card" style="margin-bottom:14px">
+              <div style="font-size:11px;color:#475569;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">Último holerite</div>
+              <div id="func-ultimo-holerite"><div style="color:#64748b;font-size:12px">Nenhum holerite recebido ainda.</div></div>
+            </div>
+            <!-- Ações rápidas -->
+            <div class="func-dash-card" style="margin-bottom:14px">
+              <div style="font-size:11px;color:#475569;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">Ações rápidas</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <button class="btn btn-p" style="width:100%;justify-content:flex-start;gap:8px" onclick="navTo('p-ates','si-ates','Enviar atestado')">
+                  <svg viewBox="0 0 24 24" width="15" height="15"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9S3 16.97 3 12 7.03 3 12 3s9 4.03 9 9z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>Enviar atestado
+                </button>
+                <button class="btn" style="width:100%;justify-content:flex-start;gap:8px" onclick="navTo('p-docs','si-docs','Meus documentos')">
+                  <svg viewBox="0 0 24 24" width="15" height="15"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z" fill="currentColor"/></svg>Ver documentos
+                </button>
+                <button class="btn" style="width:100%;justify-content:flex-start;gap:8px" onclick="navTo('p-perfil-func','si-perfil-func','Meu perfil')">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Meu perfil
+                </button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <!-- Últimos documentos recebidos -->
+            <div class="func-dash-card">
+              <div style="font-size:11px;color:#475569;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">Documentos recentes</div>
+              <div id="func-docs-recentes"><div style="color:#64748b;font-size:12px">Nenhum documento recebido ainda.</div></div>
+              <button class="btn" style="width:100%;margin-top:8px;font-size:11px" onclick="navTo('p-docs','si-docs','Meus documentos')">Ver todos os documentos</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMUNICADOS FUNCIONÁRIO -->
+      <div class="page" id="p-com-func">
+        <div style="margin-bottom:16px"><div style="font-size:17px;font-weight:500">Comunicados</div><div style="color:#64748b;font-size:12px;margin-top:2px">Mensagens criadas pela empresa</div></div>
+        <div id="com-func-list" style="color:#64748b;font-size:13px;padding:10px 0">Nenhum comunicado recebido ainda.</div>
+      </div>
+
+      <!-- CONFIGURAÇÕES -->
+      <div class="page" id="p-config">
+        <div style="margin-bottom:20px">
+          <div style="font-size:17px;font-weight:500">Configurações</div>
+          <div style="color:#64748b;font-size:12px;margin-top:2px">Ajuste as regras e preferências do sistema</div>
+        </div>
+        <div class="toast t-ok" id="t-config" style="margin-bottom:16px">Configurações salvas com sucesso!</div>
+        <div class="grid2">
+          <div>
+            <!-- Regras do sistema -->
+            <div class="card">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
+                <div style="width:32px;height:32px;border-radius:8px;background:#1e3a6e;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M12 2l2.09 6.26L20 9.27l-4.91 4.78 1.18 6.95L12 17.77l-4.27 3.23 1.18-6.95L4 9.27l5.91-.01L12 2z" stroke="#60a5fa" stroke-width="1.5"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:13px;font-weight:500;color:#fff">Regras do sistema</div>
+                  <div style="font-size:11px;color:#475569">Parâmetros operacionais</div>
+                </div>
+              </div>
+              <div class="field">
+                <label class="lbl">Prazo máximo — envio de atestado (horas)</label>
+                <input class="inp" type="number" id="cfg-prazo" min="1" max="720" placeholder="48">
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label class="lbl">Jornada semanal padrão (horas)</label>
+                <input class="inp" type="number" id="cfg-jornada" min="1" max="60" placeholder="44">
+              </div>
+            </div>
+
+            <!-- Integrações -->
+            <div class="card">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
+                <div style="width:32px;height:32px;border-radius:8px;background:#14532d;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:13px;font-weight:500;color:#fff">Integrações</div>
+                  <div style="font-size:11px;color:#475569">Login social Google &amp; Apple</div>
+                </div>
+              </div>
+              <div class="field"><label class="lbl">Google Client ID</label><input class="inp" id="cfg-google" placeholder="seu-client-id.apps.googleusercontent.com"></div>
+              <div class="field" style="margin-bottom:0"><label class="lbl">Apple Service ID</label><input class="inp" id="cfg-apple" placeholder="com.empresa.app"></div>
+            </div>
+          </div>
+
+          <div>
+            <!-- Notificações -->
+            <div class="card">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
+                <div style="width:32px;height:32px;border-radius:8px;background:#451a03;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:13px;font-weight:500;color:#fff">Notificações</div>
+                  <div style="font-size:11px;color:#475569">Canais de envio automático</div>
+                </div>
+              </div>
+              <div style="background:#0f172a;border-radius:9px;padding:4px 0;border:1px solid #1e293b">
+                <div class="notify-row" style="padding:10px 14px;border-bottom:1px solid #1e293b">
+                  <div class="notify-left">
+                    <div class="n-ico n-wz"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg></div>
+                    <div><div class="notify-name">WhatsApp</div><div style="font-size:10px;color:#64748b">Avisos e documentos via WZ</div></div>
+                  </div>
+                  <button class="toggle on" id="cfg-notif-wz" onclick="this.classList.toggle('on')"></button>
+                </div>
+                <div class="notify-row" style="padding:10px 14px">
+                  <div class="notify-left">
+                    <div class="n-ico n-em"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div>
+                    <div><div class="notify-name">E-mail</div><div style="font-size:10px;color:#64748b">Avisos e documentos via e-mail</div></div>
+                  </div>
+                  <button class="toggle on" id="cfg-notif-em" onclick="this.classList.toggle('on')"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:4px">
+          <button class="btn btn-p" style="padding:9px 22px;font-size:13px" onclick="salvarConfig()">Salvar configurações</button>
+        </div>
+      </div>
+
+      <!-- EMPRESAS -->
+      <div class="page" id="p-empresas">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:17px;font-weight:500">Empresas / Contratos</div>
+            <div style="color:#64748b;font-size:12px;margin-top:2px">Cadastre empresas e contratos para vincular aos funcionários</div>
+          </div>
+          <button class="btn btn-p" onclick="abrirModalEmpresa()" style="display:flex;align-items:center;gap:6px">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+            Nova empresa
+          </button>
+        </div>
+        <div class="toast t-ok" id="t-empresa" style="margin-bottom:14px">Empresa salva com sucesso!</div>
+        <div class="card">
+          <div class="card-row" style="margin-bottom:10px">
+            <div class="card-title" style="margin-bottom:0">Empresas cadastradas</div>
+            <span id="emp-count-badge" style="background:#1e3a6e;color:#60a5fa;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:600">0</span>
+          </div>
+          <div id="empresas-list"><div style="color:#64748b;font-size:12px;padding:20px 0;text-align:center">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" style="display:block;margin:0 auto 8px;opacity:.3"><path d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Nenhuma empresa cadastrada ainda.
+          </div></div>
+        </div>
+      </div>
+
+      <!-- MODAL EMPRESA -->
+      <div class="overlay" id="ov-empresa" onclick="if(event.target===this)closeOverlay('ov-empresa')">
+        <div class="modal" style="width:480px">
+          <div class="modal-head">
+            <div class="modal-title" id="empresa-form-title">Nova empresa</div>
+            <button class="modal-x" onclick="closeOverlay('ov-empresa')">&#215;</button>
+          </div>
+          <div class="modal-body">
+            <div class="toast t-err" id="t-empresa-err" style="margin-bottom:10px">Preencha o nome da empresa.</div>
+            <input type="hidden" id="empresa-edit-id">
+            <div class="field"><label class="lbl">Nome / Contrato <span class="req">*</span></label><input class="inp" id="empresa-nome" placeholder="Ex: UFMA ADM, IBAMA, TRT..."></div>
+            <div class="g2">
+              <div class="field"><label class="lbl">CNPJ</label><input class="inp" id="empresa-cnpj" placeholder="00.000.000/0001-00" maxlength="18" oninput="maskCNPJ(this)"></div>
+              <div class="field"><label class="lbl">Telefone / WhatsApp</label><input class="inp" id="empresa-tel" placeholder="(00) 00000-0000" maxlength="15" oninput="maskTel(this)"></div>
+            </div>
+            <div class="field"><label class="lbl">E-mail</label><input class="inp" type="email" id="empresa-email" placeholder="rh@empresa.com"></div>
+            <div class="field"><label class="lbl">Endereço</label><input class="inp" id="empresa-end" placeholder="Rua, número, cidade..."></div>
+          </div>
+          <div class="modal-foot">
+            <button class="btn" id="empresa-cancel-btn" onclick="closeOverlay('ov-empresa')">Cancelar</button>
+            <button class="btn btn-p" onclick="salvarEmpresa()">Salvar empresa</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERFIL FUNCIONÁRIO -->
+      <div class="page" id="p-perfil-func">
+        <div style="margin-bottom:16px"><div style="font-size:17px;font-weight:500">Meu perfil</div><div style="color:#64748b;font-size:12px;margin-top:2px">Seus dados pessoais e profissionais</div></div>
+        <div class="grid2">
+          <div id="perfil-func-body"></div>
+          <div>
+            <div class="func-dash-card">
+              <div style="font-size:11px;color:#475569;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px">Contato de emergência</div>
+              <div id="perfil-func-emerg"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ MODAL CADASTRO ══ -->
+<div class="overlay" id="ov-cad">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="cad-title">Novo cadastro de funcionário</div>
+      <button class="modal-x" onclick="closeCad()">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div class="prog-txt" id="cad-prog-txt">Progresso: 0 de 8 campos obrigatórios</div>
+      <div class="prog-bar"><div class="prog-fill" id="cad-prog-fill" style="width:0%"></div></div>
+      <div class="toast t-err" id="cad-err">Preencha todos os campos obrigatórios.</div>
+
+      <!-- Foto + tipo de usuário -->
+      <div style="display:flex;align-items:center;gap:14px;background:#0f172a;border-radius:9px;padding:12px;margin-bottom:14px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div class="photo-preview" onclick="sel('c-foto-input').click()">
+            <img id="c-foto-preview" src="" style="display:none;width:100%;height:100%;object-fit:cover">
+            <div id="c-foto-placeholder" style="text-align:center">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="#475569" style="display:block;margin:0 auto 3px"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="photo-overlay"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+          </div>
+          <span onclick="sel('c-foto-input').click()" style="font-size:10px;color:#2563eb;cursor:pointer;font-weight:500">Adicionar foto</span>
+        </div>
+        <input type="file" id="c-foto-input" accept="image/*" style="display:none" onchange="previewFoto(this)">
+        <div style="flex:1">
+          <div class="field" style="margin-bottom:0">
+            <label class="lbl">Tipo de usuário</label>
+            <select class="inp" id="c-role">
+              <option value="funcionario">Funcionário</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-line"><span class="sec-txt">Dados pessoais</span></div>
+      <div class="g2">
+        <div class="field span2"><label class="lbl">Nome completo <span class="req">*</span></label><input class="inp" id="c-nome" placeholder="Nome completo" oninput="cadProg()"><div class="err-msg" id="ce-nome">Campo obrigatório</div></div>
+        <div class="field"><label class="lbl">CPF <span class="req">*</span></label><input class="inp" id="c-cpf" placeholder="000.000.000-00" maxlength="14" oninput="maskCPF(this);cadProg()"><div class="err-msg" id="ce-cpf">CPF inválido</div></div>
+        <div class="field"><label class="lbl">Data de nascimento <span class="req">*</span></label><input class="inp" type="date" id="c-nasc" oninput="cadProg()"><div class="err-msg" id="ce-nasc">Campo obrigatório</div></div>
+        <div class="field"><label class="lbl">Sexo</label><select class="inp" id="c-sexo"><option value="">Selecionar</option><option>Masculino</option><option>Feminino</option><option>Prefiro não informar</option></select></div>
+        <div class="field"><label class="lbl">Estado civil</label><select class="inp" id="c-estado"><option value="">Selecionar</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>União estável</option></select></div>
+      </div>
+
+      <div class="sec-line"><span class="sec-txt">Contato</span></div>
+      <div class="g2">
+        <div class="field span2"><label class="lbl">Telefone / WhatsApp <span class="req">*</span></label><input class="inp" id="c-tel" placeholder="(00) 00000-0000" maxlength="15" oninput="maskTel(this);cadProg()"><div class="err-msg" id="ce-tel">Campo obrigatório</div></div>
+        <div class="field span2"><label class="lbl">E-mail <span class="req">*</span></label><input class="inp" type="email" id="c-email" placeholder="funcionario@email.com" oninput="cadProg()"><div class="err-msg" id="ce-email">E-mail inválido</div></div>
+        <div class="field span2"><label class="lbl">Senha de acesso <span class="req" id="c-senha-req">*</span></label><div style="position:relative"><input class="inp" type="password" id="c-senha" placeholder="Mínimo 6 caracteres" style="padding-right:38px"><button type="button" onclick="toggleSenha('c-senha',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center"><svg viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg></button></div><div style="color:#475569;font-size:11px;margin-top:3px" id="c-senha-hint">Obrigatório no cadastro. Deixe em branco para manter a atual ao editar.</div><div class="err-msg" id="ce-senha">Senha obrigatória (mín. 6 caracteres)</div></div>
+      </div>
+
+      <div class="sec-line"><span class="sec-txt">Dados profissionais</span></div>
+      <div class="g2">
+        <div class="field"><label class="lbl">Cargo / função <span class="req">*</span></label><input class="inp" id="c-cargo" placeholder="Ex: Auxiliar Administrativo" oninput="cadProg()"><div class="err-msg" id="ce-cargo">Campo obrigatório</div></div>
+        <div class="field"><label class="lbl">Departamento</label><select class="inp" id="c-dept"><option value="">Selecionar</option><option>Administrativo</option><option>Financeiro</option><option>RH</option><option>TI</option><option>Operacional</option><option>Comercial</option></select></div>
+        <div class="field"><label class="lbl">Data de admissão <span class="req">*</span></label><input class="inp" type="date" id="c-adm" oninput="cadProg()"><div class="err-msg" id="ce-adm">Campo obrigatório</div></div>
+        <div class="field"><label class="lbl">Tipo de contrato</label><select class="inp" id="c-contrato"><option value="">Selecionar</option><option>CLT</option><option>PJ</option><option>Estágio</option><option>Temporário</option><option>Autônomo</option></select></div>
+        <div class="field span2"><label class="lbl">Contrato / Empresa</label><select class="inp" id="c-empresa">
+          <option value="">Selecionar</option>
+          <option>UFMA ADM</option>
+          <option>UFMA INFRA</option>
+          <option>IBAMA</option>
+          <option>JFMA 05</option>
+          <option>JFMA 06</option>
+          <option>JFMA 07</option>
+          <option>JFMA 08</option>
+          <option>JFMA 39</option>
+          <option>TRT</option>
+        </select></div>
+      </div>
+
+      <div class="sec-line"><span class="sec-txt">Filiação</span></div>
+      <div class="g2">
+        <div class="field"><label class="lbl">Nome da mãe</label><input class="inp" id="c-mae" placeholder="Nome completo da mãe"></div>
+        <div class="field"><label class="lbl">Nome do pai</label><input class="inp" id="c-pai" placeholder="Nome completo do pai"></div>
+      </div>
+
+      <div class="sec-line"><span class="sec-txt" style="color:#f87171">Contato de emergência</span></div>
+      <div class="g2">
+        <div class="field"><label class="lbl">Nome <span class="req">*</span></label><input class="inp" id="c-en" placeholder="Nome do contato" oninput="cadProg()"><div class="err-msg" id="ce-en">Campo obrigatório</div></div>
+        <div class="field"><label class="lbl">Parentesco</label><select class="inp" id="c-ep"><option value="">Selecionar</option><option>Cônjuge</option><option>Mãe</option><option>Pai</option><option>Filho(a)</option><option>Irmão/Irmã</option><option>Outro</option></select></div>
+        <div class="field"><label class="lbl">Telefone <span class="req">*</span></label><input class="inp" id="c-et" placeholder="(00) 00000-0000" maxlength="15" oninput="maskTel(this);cadProg()"></div>
+        <div class="field"><label class="lbl">WhatsApp</label><input class="inp" id="c-ew" placeholder="(00) 00000-0000" maxlength="15" oninput="maskTel(this)"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeCad()">Cancelar</button>
+      <button class="btn btn-p" onclick="saveCad()">Salvar cadastro</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL SOLICITAÇÃO ══ -->
+<div class="overlay" id="ov-solicit" onclick="if(event.target===this)closeOverlay('ov-solicit')">
+  <div class="modal" style="width:560px">
+    <div class="modal-head">
+      <div class="modal-title">Solicitação de cadastro</div>
+      <button class="modal-x" onclick="closeOverlay('ov-solicit')">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div class="toast t-ok" id="t-solicit-ok" style="margin-bottom:12px">Salvo com sucesso!</div>
+      <div class="g2">
+        <div class="field span2"><label class="lbl">Nome completo</label><input class="inp" id="sol-nome"></div>
+        <div class="field"><label class="lbl">CPF</label><input class="inp" id="sol-cpf" maxlength="14" oninput="maskCPF(this)"></div>
+        <div class="field"><label class="lbl">Data de nascimento</label><input class="inp" type="date" id="sol-nasc"></div>
+        <div class="field"><label class="lbl">Sexo</label><select class="inp" id="sol-sexo"><option value="">Selecionar</option><option>Masculino</option><option>Feminino</option><option>Prefiro não informar</option></select></div>
+        <div class="field"><label class="lbl">Estado civil</label><select class="inp" id="sol-estado"><option value="">Selecionar</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>União estável</option></select></div>
+        <div class="field"><label class="lbl">Telefone / WhatsApp</label><input class="inp" id="sol-tel" maxlength="15" oninput="maskTel(this)"></div>
+        <div class="field"><label class="lbl">E-mail</label><input class="inp" id="sol-email"></div>
+        <div class="field"><label class="lbl">Cargo / Função</label><input class="inp" id="sol-cargo"></div>
+        <div class="field"><label class="lbl">Departamento</label><select class="inp" id="sol-dept"><option value="">Selecionar</option><option>Administrativo</option><option>Financeiro</option><option>RH</option><option>TI</option><option>Operacional</option><option>Comercial</option></select></div>
+        <div class="field span2"><label class="lbl">Contrato / Empresa</label><select class="inp" id="sol-empresa">
+          <option value="">Selecionar</option>
+          <option>UFMA ADM</option>
+          <option>UFMA INFRA</option>
+          <option>IBAMA</option>
+          <option>JFMA 05</option>
+          <option>JFMA 06</option>
+          <option>JFMA 07</option>
+          <option>JFMA 08</option>
+          <option>JFMA 39</option>
+          <option>TRT</option>
+        </select></div>
+        <div class="field"><label class="lbl">Tipo de contrato</label><select class="inp" id="sol-contrato"><option value="">Selecionar</option><option>CLT</option><option>PJ</option><option>Estágio</option><option>Temporário</option><option>Autônomo</option></select></div>
+        <div class="field"><label class="lbl">Data de admissão</label><input class="inp" type="date" id="sol-adm"></div>
+        <div class="field"><label class="lbl">Nome da mãe</label><input class="inp" id="sol-mae"></div>
+        <div class="field"><label class="lbl">Nome do pai</label><input class="inp" id="sol-pai"></div>
+        <div class="field"><label class="lbl">Contato de emergência</label><input class="inp" id="sol-en"></div>
+        <div class="field"><label class="lbl">Tel. emergência</label><input class="inp" id="sol-et" maxlength="15" oninput="maskTel(this)"></div>
+      </div>
+    </div>
+    <div class="modal-foot" style="justify-content:space-between">
+      <button class="btn btn-r" onclick="recusarSolicit()">Recusar</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="salvarSolicit()">Salvar edição</button>
+        <button class="btn btn-p" onclick="aceitarSolicit()">Aceitar cadastro</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL PERFIL ══ -->
+<div class="overlay" id="ov-perfil" onclick="if(event.target===this)closeOverlay('ov-perfil')">
+  <div class="modal" style="width:480px">
+    <div class="modal-head">
+      <div class="modal-title">Meu perfil</div>
+      <button class="modal-x" onclick="closeOverlay('ov-perfil')">&#215;</button>
+    </div>
+    <div class="modal-body" id="perfil-body"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL FICHA ══ -->
+<div class="overlay" id="ov-ficha" onclick="if(event.target===this)closeOverlay('ov-ficha')">
+  <div class="modal" style="width:540px">
+    <div class="modal-head">
+      <div class="modal-title">Ficha cadastral</div>
+      <button class="modal-x" onclick="closeOverlay('ov-ficha')">&#215;</button>
+    </div>
+    <div class="modal-body" id="ficha-body" style="padding:0"></div>
+  </div>
+</div>
+
+<script>
+// ── DADOS ──────────────────────────────────────────────────────────────────
+const AV = [
+  {bg:'#e8e6f0',c:'#534AB7'},{bg:'#e1f5ee',c:'#0F6E56'},
+  {bg:'#faeeda',c:'#854F0B'},{bg:'#faece7',c:'#993C1D'},
+  {bg:'#e6f1fb',c:'#185FA5'},{bg:'#f1f5e8',c:'#3B6D11'}
+];
+const EMPS_DEFAULT = [
+  {id:1,nome:'Ana Lima',cargo:'Gerente Administrativo',cpf:'123.456.789-00',nasc:'1990-05-14',tel:'(98) 98765-4321',tel2:'',email:'ana.lima@empresa.com',senha:'ana123',sexo:'Feminino',estado:'Casado(a)',dept:'Administrativo',adm:'2022-03-01',contrato:'CLT',mae:'Maria Lima',pai:'José Lima',en:'Carlos Lima',ep:'Cônjuge',et:'(98) 98111-2222',ew:'(98) 98111-2222',av:0,status:'ativo'},
+  {id:2,nome:'Carlos Souza',cargo:'Analista Financeiro',cpf:'234.567.890-11',nasc:'1988-11-20',tel:'(98) 99111-2233',tel2:'',email:'carlos.souza@empresa.com',senha:'carlos123',sexo:'Masculino',estado:'Solteiro(a)',dept:'Financeiro',adm:'2023-01-15',contrato:'CLT',mae:'Rita Souza',pai:'Paulo Souza',en:'Rita Souza',ep:'Mãe',et:'(98) 99333-4444',ew:'',av:1,status:'ativo'},
+  {id:3,nome:'Fernanda Costa',cargo:'Assistente de RH',cpf:'345.678.901-22',nasc:'1995-03-08',tel:'(98) 99444-5566',tel2:'',email:'fernanda@empresa.com',senha:'fernanda123',sexo:'Feminino',estado:'Solteiro(a)',dept:'RH',adm:'2023-06-01',contrato:'CLT',mae:'Sandra Costa',pai:'Roberto Costa',en:'Sandra Costa',ep:'Mãe',et:'(98) 99777-8888',ew:'(98) 99777-8888',av:2,status:'ativo'},
+  {id:4,nome:'Marcos Alves',cargo:'Suporte Técnico',cpf:'456.789.012-33',nasc:'1992-07-30',tel:'(98) 98888-7777',tel2:'',email:'marcos.alves@empresa.com',senha:'marcos123',sexo:'Masculino',estado:'Casado(a)',dept:'TI',adm:'2024-02-10',contrato:'CLT',mae:'Luiza Alves',pai:'Antonio Alves',en:'Luiza Alves',ep:'Mãe',et:'(98) 97555-6666',ew:'',av:3,status:'inativo'},
+  {id:5,nome:'Amanda Lucia Brito Silva',cargo:'Administradora',cpf:'610.159.423-85',nasc:'1995-12-17',tel:'(98) 97000-0536',tel2:'',email:'amandabritosilva17@gmail.com',senha:'admin123',sexo:'Feminino',estado:'',dept:'Administrativo',adm:'',contrato:'CLT',mae:'',pai:'',en:'',ep:'',et:'',ew:'',av:4,status:'ativo'}
+];
+function empsLoad() {
+  try {
+    const s = localStorage.getItem('dp_emps');
+    if (s) {
+      // Tenta decodificar btoa (novo formato), fallback para JSON puro (formato antigo)
+      let raw;
+      try { raw = decodeURIComponent(escape(atob(s))); } catch(e) { raw = s; }
+      const d = JSON.parse(raw);
+      if (Array.isArray(d) && d.length) {
+        // Garante que os funcionários padrão (ids 1-5) sempre têm senha e dados corretos
+        EMPS_DEFAULT.forEach(function(def) {
+          const idx = d.findIndex(function(e){ return e.id === def.id; });
+          if (idx >= 0) {
+            // Preserva dados editados pelo admin, mas corrige senha se estiver vazia
+            if (!d[idx].senha) d[idx].senha = def.senha;
+            if (!d[idx].email) d[idx].email = def.email;
+            if (!d[idx].cpf)   d[idx].cpf   = def.cpf;
+          }
+          // Se o funcionário padrão foi removido do localStorage, não reinsere
+        });
+        return d;
+      }
+    }
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(EMPS_DEFAULT));
+}
+function empsSave() {
+  try {
+    var json = JSON.stringify(emps);
+    // Ofusca dados sensíveis (impede leitura casual no DevTools)
+    var enc = btoa(unescape(encodeURIComponent(json)));
+    localStorage.setItem('dp_emps', enc);
+  } catch(e) {}
+}
+let emps = empsLoad();
+// Salva imediatamente para persistir a correção de senhas
+empsSave();
+let nextId = Math.max.apply(null, emps.map(function(e){ return e.id||0; })) + 1;
+let agDates = [];
+let scheduled = [];
+let agMode = 'now';
+let comCh = 'wz';
+let editId = null;
+let currentUser = null;
+let statusFilter = 'todos';
+// Fotos de admins sem registro em emps: { email: base64 }
+var adminFotos = (function(){ try{ return JSON.parse(localStorage.getItem('dp_admin_fotos')||'{}'); }catch(e){ return {}; } })();
+function adminFotosSave(){ try{ localStorage.setItem('dp_admin_fotos', JSON.stringify(adminFotos)); }catch(e){} }
+// Atestados: [{id, empId, empNome, tipo, dataEmissao, obs, fileBase64, fileName, status, envioDate}]
+var atestados = (function(){ try{ return JSON.parse(localStorage.getItem('dp_ates')||'[]'); }catch(e){ return []; } })();
+function atesSave(){ try{ localStorage.setItem('dp_ates', JSON.stringify(atestados)); }catch(e){} }
+var atesNextId = Math.max.apply(null, atestados.map(function(a){ return a.id||0; }).concat([0])) + 1;
+// Documentos enviados pelo admin: [{id, empId, empNome, tipo, nome, fileBase64, fileName, data}]
+var documentos = (function(){ try{ return JSON.parse(localStorage.getItem('dp_docs')||'[]'); }catch(e){ return []; } })();
+function docsSave(){ try{ localStorage.setItem('dp_docs', JSON.stringify(documentos)); }catch(e){} }
+var docsNextId = Math.max.apply(null, documentos.map(function(d){ return d.id||0; }).concat([0])) + 1;
+// Configurações da empresa
+var dpConfig = (function(){
+  var def = {empresa:'Minha Empresa',prazoHoras:48,notifWZ:true,notifEmail:true};
+  try{ return Object.assign({},def,JSON.parse(localStorage.getItem('dp_config')||'{}')); }catch(e){ return def; }
+})();
+function configSave(){ try{ localStorage.setItem('dp_config', JSON.stringify(dpConfig)); }catch(e){} }
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+const ini = n => n.trim().split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase() || '?';
+const fmtD = d => { if(!d) return '—'; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
+const gv = id => { const e=document.getElementById(id); return e ? e.value : ''; };
+const sv = (id,v) => { const e=document.getElementById(id); if(e) e.value = v||''; };
+const sel = id => document.getElementById(id);
+
+function maskCPF(el) {
+  let v = el.value.replace(/\D/g,'');
+  if(v.length>3) v = v.slice(0,3)+'.'+v.slice(3);
+  if(v.length>7) v = v.slice(0,7)+'.'+v.slice(7);
+  if(v.length>11) v = v.slice(0,11)+'-'+v.slice(11);
+  el.value = v.slice(0,14);
+}
+function maskTel(el) {
+  let v = el.value.replace(/\D/g,'');
+  if(v.length>0) v = '('+v;
+  if(v.length>3) v = v.slice(0,3)+') '+v.slice(3);
+  if(v.length>10) v = v.slice(0,10)+'-'+v.slice(10);
+  el.value = v.slice(0,15);
+}
+function showT(id) {
+  const t = sel(id); if(!t) return;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 3000);
+}
+
+// ── NAVEGAÇÃO ──────────────────────────────────────────────────────────────
+function show(id) {
+  ['v-splash','v-login','v-register','v-app'].forEach(x => { const e=sel(x); if(e) e.style.display='none'; });
+  const t = sel(id); if(t) t.style.display = 'block';
+}
+function showErr(id) {
+  const el = sel(id); if(!el) return;
+  el.classList.add('on');
+  setTimeout(() => el.classList.remove('on'), 3500);
+}
+
+function toggleSenha(inputId, btn) {
+  var inp = sel(inputId); if(!inp) return;
+  var show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  var svg = btn.querySelector('svg');
+  if(svg) svg.innerHTML = show
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>';
+}
+
+function showPendente() {
+  // Esconde outros erros e mostra a mensagem de pendente sem auto-fechar
+  ['l-err','l-err-inativo','l-err-social','l-err-semsenha','l-err-naoadm','l-err-naocfg']
+    .forEach(function(id){ var el=sel(id); if(el) el.classList.remove('on'); });
+  var el = sel('l-err-pendente');
+  if(!el) return;
+  el.style.display = 'block';
+}
+
+// Emails/CPFs que são administradores (let para permitir novos admins via cadastro)
+let ADMINS = [
+  {email:'admin@dpgestao.com',           cpf:'',            senha:'admin123', nome:'Administrador'},
+  {email:'amandabritosilva17@gmail.com', cpf:'61015942385', senha:'admin123', nome:'Amanda Lucia Brito Silva'}
+];
+
+function isAdminCredential(inputLow, inputCPF) {
+  return ADMINS.some(a =>
+    (a.email && a.email.toLowerCase() === inputLow) ||
+    (a.cpf && a.cpf === inputCPF && inputCPF.length === 11)
+  );
+}
+
+// ── SEGURANÇA ──────────────────────────────────────────────────────────────
+
+// SHA-256 via Web Crypto API (HTTPS / localhost)
+async function hashSenha(s) {
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+    return 'h:' + Array.from(new Uint8Array(buf)).map(x => x.toString(16).padStart(2,'0')).join('');
+  } catch(e) { return s; } // fallback: texto puro se crypto indisponível
+}
+
+async function checkSenha(input, stored) {
+  if (!stored) return false;
+  if (stored.startsWith('h:')) return (await hashSenha(input)) === stored;
+  return input === stored; // legado: texto puro
+}
+
+// Bloqueio por tentativas de login
+var _lat = 0, _llu = 0;
+(function(){
+  try {
+    _lat = parseInt(localStorage.getItem('dp_lat')||'0',10)||0;
+    _llu = parseInt(localStorage.getItem('dp_llu')||'0',10)||0;
+  } catch(e){}
+})();
+
+function loginIsLocked() {
+  if (_llu > Date.now()) return true;
+  if (_llu && _llu <= Date.now()) {
+    _lat = 0; _llu = 0;
+    try { localStorage.removeItem('dp_lat'); localStorage.removeItem('dp_llu'); } catch(e){}
+  }
+  return false;
+}
+function loginFail() {
+  _lat++;
+  if (_lat >= 5) {
+    _llu = Date.now() + 5 * 60000; // 5 minutos
+    _lat = 0;
+    try { localStorage.setItem('dp_llu', String(_llu)); } catch(e){}
+  }
+  try { localStorage.setItem('dp_lat', String(_lat)); } catch(e){}
+}
+function loginOk() {
+  _lat = 0; _llu = 0;
+  try { localStorage.removeItem('dp_lat'); localStorage.removeItem('dp_llu'); } catch(e){}
+}
+function showErrLocked() {
+  ['l-err','l-err-inativo','l-err-social','l-err-semsenha','l-err-naoadm','l-err-naocfg']
+    .forEach(function(id){ var el=sel(id); if(el) el.classList.remove('on'); });
+  var min = Math.ceil((_llu - Date.now()) / 60000);
+  var sp = sel('l-lock-min'); if(sp) sp.textContent = min;
+  var el = sel('l-err-bloqueado'); if(el) el.classList.add('on');
+}
+
+// Timeout de sessão — 30 min de inatividade
+var _sTimer = null, _sWarn = null;
+function startSessao() {
+  ['click','mousemove','keydown','touchstart'].forEach(function(ev) {
+    document.addEventListener(ev, resetSessao, { passive: true });
+  });
+  resetSessao();
+}
+function resetSessao() {
+  if (!currentUser) return;
+  clearTimeout(_sTimer); clearTimeout(_sWarn);
+  _sWarn  = setTimeout(function(){ if(currentUser) showT('t-sessao-aviso'); }, 25 * 60000);
+  _sTimer = setTimeout(function(){ if(currentUser) logout(); },               30 * 60000);
+}
+function stopSessao() { clearTimeout(_sTimer); clearTimeout(_sWarn); }
+
+// ── FIM SEGURANÇA ──────────────────────────────────────────────────────────
+
+async function doLogin(modo) {
+  // Verificar bloqueio por tentativas
+  if (loginIsLocked()) { showErrLocked(); return; }
+
+  const input = (gv('l-email') || '').trim();
+  const senha = (gv('l-senha') || '').trim();
+  const inputLow = input.toLowerCase();
+  const inputCPF = input.replace(/\D/g, '');
+
+  /* ── BOTÃO ADMIN ── */
+  if (modo === 'adm') {
+    const adm = ADMINS.find(function(a) {
+      const emailOk = a.email && a.email.toLowerCase() === inputLow;
+      const cpfOk   = a.cpf && inputCPF.length === 11 && a.cpf === inputCPF;
+      return emailOk || cpfOk;
+    });
+    if (adm && await checkSenha(senha, adm.senha)) {
+      loginOk();
+      currentUser = { nome: adm.nome, role: 'admin', email: adm.email, cpf: adm.cpf };
+      afterLogin();
+    } else {
+      loginFail();
+      if (loginIsLocked()) showErrLocked(); else showErr('l-err-naoadm');
+    }
+    return;
+  }
+
+  /* ── BOTÃO FUNCIONÁRIO ── */
+  const hasAt = inputLow.includes('@');
+  const found = emps.find(function(e) {
+    const emailOk = hasAt
+      ? (e.email && e.email.trim().toLowerCase() === inputLow)
+      : false;
+    const cpfOk = !hasAt && inputCPF.length === 11
+      ? (e.cpf && e.cpf.replace(/\D/g,'') === inputCPF)
+      : false;
+    const emailFallback = !hasAt && e.email && e.email.trim().toLowerCase() === inputLow;
+    return emailOk || cpfOk || emailFallback;
+  });
+
+  if (!found)                      { loginFail(); if(loginIsLocked()) showErrLocked(); else showErr('l-err'); return; }
+  if (!found.senha)                { showErr('l-err-semsenha'); return; }
+  if (!(await checkSenha(senha, found.senha))) { loginFail(); if(loginIsLocked()) showErrLocked(); else showErr('l-err'); return; }
+  if (found.status === 'inativo')  { showErr('l-err-inativo');  return; }
+  if (found.status === 'pendente') { showPendente(); return; }
+
+  // Migração: se senha ainda é texto puro, re-salvar como hash
+  if (!found.senha.startsWith('h:')) {
+    found.senha = await hashSenha(senha);
+    empsSave();
+  }
+
+  loginOk();
+  // Detecta se é admin (por role no registro ou por estar na lista ADMINS)
+  var isEmpAdmin = found.role === 'admin' || isAdminCredential(inputLow, inputCPF);
+  if (isEmpAdmin) {
+    currentUser = { nome: found.nome, role: 'admin', email: found.email, cpf: found.cpf, id: found.id };
+  } else {
+    currentUser = { nome: found.nome, role: 'funcionario', id: found.id };
+  }
+  afterLogin();
+}
+
+// ── LOGIN SOCIAL ───────────────────────────────────────────────────────────
+// Substitua pelo seu Client ID do Google Cloud Console:
+// https://console.cloud.google.com → APIs → Credenciais → Criar ID do cliente OAuth
+const GOOGLE_CLIENT_ID = 'CONFIGURE_GOOGLE_CLIENT_ID';
+
+// Substitua pelo seu Service ID da Apple Developer Account:
+// https://developer.apple.com → Certificates → Services IDs
+const APPLE_SERVICE_ID  = 'CONFIGURE_APPLE_SERVICE_ID';
+const APPLE_REDIRECT_URI = window.location.origin + window.location.pathname;
+
+function loginBySocial(email) {
+  const emailLow = email.toLowerCase();
+
+  // Verifica se é admin
+  const adm = ADMINS.find(a => a.email && a.email.toLowerCase() === emailLow);
+  if(adm) {
+    currentUser = {nome: adm.nome, role:'admin', email: adm.email, cpf: adm.cpf};
+    afterLogin();
+    return;
+  }
+
+  // Verifica se é funcionário cadastrado
+  const found = emps.find(e => e.email && e.email.toLowerCase() === emailLow);
+  if(!found)                      { showErr('l-err-social');  return; }
+  if(found.status === 'inativo')  { showErr('l-err-inativo'); return; }
+  if(found.status === 'pendente') { showPendente(); return; }
+
+  currentUser = {nome: found.nome, role:'funcionario', id: found.id};
+  afterLogin();
+}
+
+function googleLogin() {
+  if(GOOGLE_CLIENT_ID === 'CONFIGURE_GOOGLE_CLIENT_ID') {
+    showErr('l-err-naocfg'); return;
+  }
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: function(response) {
+      try {
+        const payload = JSON.parse(atob(response.credential.split('.')[1]));
+        loginBySocial(payload.email);
+      } catch(e) { showErr('l-err-social'); }
+    },
+    ux_mode: 'popup'
+  });
+  google.accounts.id.prompt(notification => {
+    if(notification.isNotDisplayed() || notification.isSkippedMoment()) {
+      // Fallback: abre seletor de conta diretamente
+      google.accounts.id.renderButton(
+        document.createElement('div'),
+        {theme:'outline', size:'large'}
+      );
+    }
+  });
+}
+
+function appleLogin() {
+  if(APPLE_SERVICE_ID === 'CONFIGURE_APPLE_SERVICE_ID') {
+    showErr('l-err-naocfg'); return;
+  }
+  AppleID.auth.init({
+    clientId: APPLE_SERVICE_ID,
+    scope: 'email name',
+    redirectURI: APPLE_REDIRECT_URI,
+    usePopup: true
+  });
+  AppleID.auth.signIn().then(function(response) {
+    const email = response.user ? response.user.email : null;
+    if(!email) { showErr('l-err-social'); return; }
+    loginBySocial(email);
+  }).catch(function() { showErr('l-err-social'); });
+}
+
+function afterLogin() {
+  try {
+    const nome = currentUser.nome || '';
+    const isAdmin = currentUser.role === 'admin';
+    const role = isAdmin ? 'Administrador' : 'Funcionário';
+    const iniciais = ini(nome);
+
+    // Sidebar topo (foto + nome)
+    const topName = sel('sb-top-name'); if(topName) topName.textContent = nome;
+    const topRole = sel('sb-top-role'); if(topRole) topRole.textContent = role;
+    const topIni  = sel('sb-av-top-txt'); if(topIni) topIni.textContent = iniciais;
+
+    // Sidebar rodapé
+    const sbName = sel('sb-user-name'); if(sbName) sbName.textContent = nome;
+    const sbRole = sel('sb-user-role'); if(sbRole) sbRole.textContent = role;
+    const sbAv   = sel('sb-av-txt');   if(sbAv)   sbAv.textContent   = iniciais;
+
+    // Foto do usuário (se tiver)
+    const emp = (!isAdmin && currentUser.id)
+      ? emps.find(e => e.id === currentUser.id) : null;
+    // Foto: emps tem prioridade; fallback para adminFotos
+    const fotoSrc = (emp && emp.foto) ? emp.foto
+      : (isAdmin ? adminFotos[currentUser.email || currentUser.nome || 'admin'] || '' : '');
+    if (fotoSrc) {
+      const img = '<img src="'+fotoSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+      const topAv = sel('sb-av-top'); if(topAv) topAv.innerHTML = img;
+      const botAv = sel('sb-av-txt'); if(botAv) botAv.innerHTML = img;
+    }
+
+    // Configura UI conforme papel
+    setupRoleUI(isAdmin, emp || {});
+  } catch(e) { /* não bloqueia o login */ }
+
+  // Persiste sessão para sobreviver ao F5
+  try { localStorage.setItem('dp_session', JSON.stringify(currentUser)); } catch(e) {}
+
+  startSessao();
+  show('v-app');
+  if (currentUser.role === 'admin') {
+    navTo('p-dash','si-dash','Dashboard');
+  } else {
+    navTo('p-dash-func','si-dash-func','Início');
+  }
+}
+
+function setupRoleUI(isAdmin, emp) {
+  const app = document.querySelector('.app');
+  if (!app) return;
+  if (isAdmin) {
+    app.classList.add('role-admin');
+    app.classList.remove('role-func');
+  } else {
+    app.classList.add('role-func');
+    app.classList.remove('role-admin');
+    // Preenche dashboard do funcionário
+    renderFuncDash(emp);
+    // Preenche página de perfil
+    renderPerfilFunc(emp);
+    // Atestado: esconde dropdown "Funcionário" (campo de seleção para admin)
+    const atFuncField = sel('at-func');
+    if (atFuncField) {
+      const wrap = atFuncField.closest('.field');
+      if (wrap) wrap.style.display = 'none';
+    }
+  }
+}
+
+function renderFuncDash(emp) {
+  const nome = currentUser.nome || '—';
+  const dept = emp.dept || emp.cargo || '—';
+  const status = emp.status || 'ativo';
+  const foto = emp.foto || '';
+
+  const dashNome = sel('func-dash-nome'); if(dashNome) dashNome.textContent = nome.split(' ')[0];
+  const dashAv   = sel('func-dash-av');
+  if (dashAv) {
+    dashAv.innerHTML = foto
+      ? '<img src="'+foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+      : '<span style="font-size:18px;font-weight:600;color:#60a5fa">'+ini(nome)+'</span>';
+  }
+  const cargoBadge = sel('func-cargo-badge'); if(cargoBadge) cargoBadge.textContent = dept;
+  renderFuncUltimoHolerite();
+  renderFuncDocsRecentes();
+  const stBadge = sel('func-status-badge');
+  if (stBadge) {
+    if (status === 'ativo') {
+      stBadge.style.background = '#14532d'; stBadge.style.color = '#4ade80'; stBadge.textContent = '● Ativo';
+    } else if (status === 'inativo') {
+      stBadge.style.background = '#1e293b'; stBadge.style.color = '#94a3b8'; stBadge.textContent = '● Inativo';
+    } else {
+      stBadge.style.background = '#78350f'; stBadge.style.color = '#fbbf24'; stBadge.textContent = '● Afastado';
+    }
+  }
+}
+
+function fotoCirculo(fotoSrc, nome, size, inputId) {
+  var s = size || 64;
+  var inner = fotoSrc
+    ? '<img src="'+fotoSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+    : '<span style="font-size:'+(Math.round(s*0.3))+'px;font-weight:600;color:#60a5fa">'+ini(nome||'?')+'</span>';
+  var camBtn = inputId
+    ? '<label for="'+inputId+'" style="position:absolute;bottom:0;right:0;width:24px;height:24px;background:#2563eb;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #1e293b;box-shadow:0 2px 6px rgba(0,0,0,.4)" title="Alterar foto">'
+      + '<svg viewBox="0 0 24 24" width="12" height="12" fill="none"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="13" r="3" stroke="#fff" stroke-width="1.5"/></svg>'
+      + '</label>'
+    : '';
+  var txtBtn = inputId
+    ? '<label for="'+inputId+'" style="display:block;text-align:center;margin-top:5px;font-size:10px;color:#2563eb;cursor:pointer;font-weight:500">'+(fotoSrc?'Alterar foto':'Adicionar foto')+'</label>'
+    : '';
+  return '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">'
+    + '<div style="position:relative;width:'+s+'px;height:'+s+'px">'
+      + '<div style="width:'+s+'px;height:'+s+'px;border-radius:50%;background:#1e3a6e;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid #334155">'+inner+'</div>'
+      + camBtn
+    + '</div>'
+    + txtBtn
+    + '</div>';
+}
+
+function salvarFotoPerfil(input, empId) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var base64 = e.target.result;
+    // Salva no emps
+    var emp = emps.find(function(x){ return x.id === empId; });
+    if (emp) {
+      emp.foto = base64;
+      empsSave();
+    }
+    // Atualiza sidebar
+    var topAv = sel('sb-av-top');
+    if (topAv) topAv.innerHTML = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    var botAv = sel('sb-av-txt');
+    if (botAv) botAv.innerHTML = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    // Atualiza dash func avatar
+    var dashAv = sel('func-dash-av');
+    if (dashAv) dashAv.innerHTML = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    // Re-renderiza perfil e modal se estiver aberto
+    if (emp) {
+      renderPerfilFunc(emp);
+      if (sel('ov-perfil') && sel('ov-perfil').classList.contains('on')) openPerfil();
+    }
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+// Salva foto para admin sem registro em emps
+function salvarFotoAdmin(input) {
+  if (!input.files || !input.files[0] || !currentUser) return;
+  var email = currentUser.email || currentUser.nome || 'admin';
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var base64 = e.target.result;
+    adminFotos[email] = base64;
+    adminFotosSave();
+    // Atualiza sidebar
+    var imgHtml = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    var topAv = sel('sb-av-top'); if(topAv) topAv.innerHTML = imgHtml;
+    var botAv = sel('sb-av-txt'); if(botAv) botAv.innerHTML = imgHtml;
+    // Re-abre modal de perfil se estiver aberto
+    if (sel('ov-perfil') && sel('ov-perfil').classList.contains('on')) openPerfil();
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function renderPerfilFunc(emp) {
+  const body = sel('perfil-func-body');
+  const emerg = sel('perfil-func-emerg');
+  if (!body || !emp) return;
+
+  function row(label, val) {
+    if (!val || val === '—') return '';
+    return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #0f172a">'
+      + '<span style="color:#64748b;font-size:12px">'+label+'</span>'
+      + '<span style="color:#e2e8f0;font-size:12px;font-weight:500;text-align:right;max-width:60%">'+val+'</span>'
+      + '</div>';
+  }
+
+  const stCls = {ativo:'b-green',inativo:'b-gray',pendente:'b-amber'};
+  const stLbl = {ativo:'Ativo',inativo:'Inativo',pendente:'Pendente'};
+  const st = emp.status||'ativo';
+  const inputId = 'perfil-func-foto-input';
+
+  body.innerHTML =
+    '<div class="func-dash-card" style="margin-bottom:14px">'
+      + '<input type="file" id="'+inputId+'" accept="image/*" style="display:none" onchange="salvarFotoPerfil(this,'+emp.id+')">'
+      + '<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #0f172a">'
+        + fotoCirculo(emp.foto, emp.nome, 64, inputId)
+        + '<div>'
+          + '<div style="font-size:15px;font-weight:600;color:#fff">'+(emp.nome||'—')+'</div>'
+          + '<div style="font-size:12px;color:#60a5fa;margin-top:2px">'+(emp.cargo||'—')+'</div>'
+          + '<span class="badge '+(stCls[st]||'b-green')+'" style="margin-top:6px;display:inline-block">'+(stLbl[st]||'Ativo')+'</span>'
+        + '</div>'
+      + '</div>'
+      + '<div style="font-size:10px;color:#475569;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Dados pessoais</div>'
+      + row('CPF', emp.cpf)
+      + row('Data de nascimento', emp.nasc ? fmtD(emp.nasc) : '')
+      + row('Sexo', emp.sexo)
+      + '<div style="font-size:10px;color:#475569;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin:12px 0 6px">Contato</div>'
+      + row('Telefone', emp.tel)
+      + row('E-mail', emp.email)
+      + '<div style="font-size:10px;color:#475569;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin:12px 0 6px">Dados profissionais</div>'
+      + row('Departamento', emp.dept)
+      + row('Empresa/Contrato', emp.empresa)
+      + row('Tipo de contrato', emp.contrato)
+      + row('Admissão', emp.adm ? fmtD(emp.adm) : '')
+    + '</div>';
+
+  if (emerg) {
+    emerg.innerHTML =
+      row('Nome', emp.en)
+      + row('Parentesco', emp.ep)
+      + row('Telefone', emp.et)
+      + row('WhatsApp', emp.ew)
+      || '<div style="color:#475569;font-size:12px">Nenhum contato cadastrado.</div>';
+  }
+}
+function navTo(pid, sid, title) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  const pg = sel(pid); if(pg) pg.classList.add('on');
+  document.querySelectorAll('.si').forEach(b => b.classList.remove('on'));
+  const sb = sel(sid); if(sb) sb.classList.add('on');
+  const tb = sel('tb-title'); if(tb) tb.textContent = title;
+  window.scrollTo(0,0);
+  if(pid === 'p-func') renderEmps(emps);
+  if(pid === 'p-dash') renderDash();
+  if(pid === 'p-ates') renderAtesAdmin();
+  if(pid === 'p-config') renderConfig();
+  if(pid === 'p-empresas') renderEmpresas();
+  if(pid === 'p-pdf') renderDocsEnviados();
+  if(pid === 'p-docs') renderMeusDocs();
+  if(pid === 'p-com') renderComHistorico();
+  if(pid === 'p-com-func') renderComFunc();
+  if(pid === 'p-avisos') renderAvisos();
+  refreshSelects();
+  renderSolicit(); // atualiza badge de pendentes na sidebar em qualquer página
+  closeMobMenu(); // fecha menu ao navegar no mobile
+}
+
+// ── ATESTADOS ──────────────────────────────────────────────────────────────
+var atesFiltro = 'todos';
+function salvarAtestado() {
+  var fileInput = sel('at-file-input');
+  if (!fileInput || !fileInput.files || !fileInput.files[0]) { alert('Selecione um arquivo antes de enviar.'); return; }
+  var isAdmin = currentUser && currentUser.role === 'admin';
+  var empId = isAdmin ? (parseInt(gv('at-func'))||null) : (currentUser ? currentUser.id : null);
+  var emp = empId ? emps.find(function(e){ return e.id === empId; }) : null;
+  var dataEmissao = gv('at-data');
+  var tipo = gv('at-tipo') || 'Atestado médico';
+  var obs = gv('at-obs') || '';
+  var file = fileInput.files[0];
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var now = new Date();
+    atestados.push({
+      id: atesNextId++,
+      empId: empId,
+      empNome: emp ? emp.nome : (currentUser ? currentUser.nome : '—'),
+      tipo: tipo,
+      dataEmissao: dataEmissao,
+      obs: obs,
+      fileBase64: ev.target.result,
+      fileName: file.name,
+      status: 'pendente',
+      envioDate: now.toISOString().split('T')[0]
+    });
+    atesSave();
+    renderDash();
+    renderAtesAdmin();
+    showT('t-ates');
+    // Reset form
+    fileInput.value = '';
+    var fn = sel('at-file-name'); if(fn) fn.textContent = '';
+    var btn = sel('at-btn'); if(btn){ btn.disabled=true; btn.style.opacity='.4'; btn.style.cursor='not-allowed'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderAtesAdmin() {
+  var list = sel('ates-list'); if(!list) return;
+  var filtered = atesFiltro === 'todos' ? atestados : atestados.filter(function(a){ return a.status === atesFiltro; });
+  if(!filtered.length) { list.innerHTML = '<div style="color:#64748b;font-size:12px;padding:8px 0">Nenhum atestado'+(atesFiltro!=='todos'?' '+atesFiltro:'')+'.</div>'; return; }
+  var stMap = {pendente:{cls:'b-amber',lbl:'Pendente'},aprovado:{cls:'b-green',lbl:'Aprovado'},recusado:{cls:'b-red',lbl:'Recusado'}};
+  list.innerHTML = filtered.slice().reverse().map(function(a) {
+    var st = stMap[a.status] || stMap.pendente;
+    var btns = a.status === 'pendente'
+      ? '<div class="btn-row" style="margin-top:8px">'
+        + '<button class="btn btn-sm btn-g" onclick="atualizarAtes('+a.id+',\'aprovado\')">✅ Aprovar</button>'
+        + '<button class="btn btn-sm btn-r" onclick="atualizarAtes('+a.id+',\'recusado\')">❌ Recusar</button>'
+        + (a.fileBase64 ? '<a class="btn btn-sm" href="'+a.fileBase64+'" download="'+a.fileName+'" target="_blank">Ver arquivo</a>' : '')
+        + '</div>'
+      : (a.fileBase64 ? '<div style="margin-top:6px"><a class="btn btn-sm" href="'+a.fileBase64+'" download="'+a.fileName+'" target="_blank" style="font-size:10px">Ver arquivo</a></div>' : '');
+    return '<div class="pdf-row" style="flex-direction:column;align-items:flex-start;padding:10px 0;border-bottom:1px solid #0f172a">'
+      + '<div style="display:flex;width:100%;align-items:center;gap:10px">'
+        + '<div class="pdf-icon" style="flex-shrink:0"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg></div>'
+        + '<div style="flex:1"><div style="font-size:13px;font-weight:500">'+a.tipo+'</div><div style="font-size:11px;color:#64748b">'+a.empNome+' · '+(a.dataEmissao?fmtD(a.dataEmissao):a.envioDate)+(a.obs?' · '+a.obs:'')+'</div></div>'
+        + '<span class="badge '+st.cls+'">'+st.lbl+'</span>'
+      + '</div>'
+      + btns
+    + '</div>';
+  }).join('');
+}
+
+function atualizarAtes(id, novoStatus) {
+  var a = atestados.find(function(x){ return x.id === id; }); if(!a) return;
+  a.status = novoStatus;
+  atesSave();
+  renderAtesAdmin();
+  renderDash();
+}
+
+function filtrarAtes(status, btn) {
+  atesFiltro = status;
+  document.querySelectorAll('#ates-recebidos-card .btn-sm').forEach(function(b){ b.style.background=''; b.style.color=''; });
+  if(btn){ btn.style.background='#2563eb'; btn.style.color='#fff'; }
+  renderAtesAdmin();
+}
+
+// ── CONFIGURAÇÕES ──────────────────────────────────────────────────────────
+function renderConfig() {
+  sv('cfg-prazo', dpConfig.prazoHoras||48);
+  sv('cfg-jornada', dpConfig.jornada||44);
+  sv('cfg-google', dpConfig.googleClientId||'');
+  sv('cfg-apple', dpConfig.appleServiceId||'');
+  var wz = sel('cfg-notif-wz'); if(wz){ if(dpConfig.notifWZ!==false) wz.classList.add('on'); else wz.classList.remove('on'); }
+  var em = sel('cfg-notif-em'); if(em){ if(dpConfig.notifEmail!==false) em.classList.add('on'); else em.classList.remove('on'); }
+}
+
+function salvarConfig() {
+  dpConfig.prazoHoras = parseInt(gv('cfg-prazo'))||48;
+  dpConfig.jornada = parseInt(gv('cfg-jornada'))||44;
+  dpConfig.googleClientId = gv('cfg-google');
+  dpConfig.appleServiceId = gv('cfg-apple');
+  var wz = sel('cfg-notif-wz'); dpConfig.notifWZ = wz ? wz.classList.contains('on') : true;
+  var em = sel('cfg-notif-em'); dpConfig.notifEmail = em ? em.classList.contains('on') : true;
+  configSave();
+  var ph = sel('prazo-horas-txt'); if(ph) ph.textContent = dpConfig.prazoHoras+' horas';
+  showT('t-config');
+}
+
+// ── EMPRESAS ───────────────────────────────────────────────────────────────
+var empresas = (function(){ try{ return JSON.parse(localStorage.getItem('dp_empresas')||'[]'); }catch(e){ return []; } })();
+function empresasSave(){ try{ localStorage.setItem('dp_empresas', JSON.stringify(empresas)); }catch(e){} }
+var empresaNextId = Math.max.apply(null, empresas.map(function(e){ return e.id||0; }).concat([0])) + 1;
+
+function maskCNPJ(el) {
+  var v = el.value.replace(/\D/g,'');
+  if(v.length>2)  v = v.slice(0,2)+'.'+v.slice(2);
+  if(v.length>6)  v = v.slice(0,6)+'.'+v.slice(6);
+  if(v.length>10) v = v.slice(0,10)+'/'+v.slice(10);
+  if(v.length>15) v = v.slice(0,15)+'-'+v.slice(15);
+  el.value = v.slice(0,18);
+}
+
+function abrirModalEmpresa() {
+  cancelarEmpresa();
+  sel('ov-empresa').classList.add('on');
+}
+
+function renderEmpresas() {
+  var list = sel('empresas-list'); if(!list) return;
+  var badge = sel('emp-count-badge'); if(badge) badge.textContent = empresas.length;
+  if(!empresas.length) {
+    list.innerHTML = '<div style="color:#64748b;font-size:13px;padding:30px 0;text-align:center"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" style="display:block;margin:0 auto 8px;opacity:.3"><path d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/></svg>Nenhuma empresa cadastrada ainda.</div>';
+    return;
+  }
+  list.innerHTML = empresas.map(function(e) {
+    return '<div style="background:#0f172a;border-radius:9px;padding:14px 16px;margin-bottom:8px;border:1px solid #1e293b">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:4px">'+e.nome+'</div>'
+          + (e.cnpj ? '<div style="font-size:13px;color:#94a3b8;margin-top:2px">CNPJ: '+e.cnpj+'</div>' : '')
+          + (e.email ? '<div style="font-size:13px;color:#94a3b8">'+e.email+'</div>' : '')
+          + (e.tel ? '<div style="font-size:13px;color:#94a3b8">'+e.tel+'</div>' : '')
+          + (e.end ? '<div style="font-size:12px;color:#64748b;margin-top:3px">'+e.end+'</div>' : '')
+        + '</div>'
+        + '<div class="btn-row" style="flex-shrink:0">'
+          + '<button class="btn btn-sm" onclick="editarEmpresa('+e.id+')">Editar</button>'
+          + '<button class="btn btn-sm btn-r" onclick="removerEmpresa('+e.id+')">Remover</button>'
+        + '</div>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function salvarEmpresa() {
+  var nome = gv('empresa-nome').trim();
+  if(!nome) { showT('t-empresa-err'); return; }
+  var editId = gv('empresa-edit-id');
+  var obj = {
+    nome: nome,
+    cnpj: gv('empresa-cnpj'),
+    email: gv('empresa-email'),
+    tel: gv('empresa-tel'),
+    end: gv('empresa-end')
+  };
+  if(editId) {
+    var idx = empresas.findIndex(function(e){ return String(e.id) === String(editId); });
+    if(idx >= 0) empresas[idx] = Object.assign({}, empresas[idx], obj);
+  } else {
+    obj.id = empresaNextId++;
+    empresas.push(obj);
+  }
+  empresasSave();
+  closeOverlay('ov-empresa');
+  cancelarEmpresa();
+  renderEmpresas();
+  refreshEmpresaSelects();
+  showT('t-empresa');
+}
+
+function editarEmpresa(id) {
+  var e = empresas.find(function(x){ return x.id === id; }); if(!e) return;
+  sv('empresa-edit-id', id);
+  sv('empresa-nome', e.nome);
+  sv('empresa-cnpj', e.cnpj||'');
+  sv('empresa-email', e.email||'');
+  sv('empresa-tel', e.tel||'');
+  sv('empresa-end', e.end||'');
+  var title = sel('empresa-form-title'); if(title) title.textContent = 'Editar empresa';
+  sel('ov-empresa').classList.add('on');
+}
+
+function cancelarEmpresa() {
+  sv('empresa-edit-id','');
+  sv('empresa-nome',''); sv('empresa-cnpj',''); sv('empresa-email',''); sv('empresa-tel',''); sv('empresa-end','');
+  var title = sel('empresa-form-title'); if(title) title.textContent = 'Nova empresa';
+}
+
+function removerEmpresa(id) {
+  var e = empresas.find(function(x){ return x.id === id; });
+  if(!e || !confirm('Remover a empresa "'+e.nome+'"?')) return;
+  empresas = empresas.filter(function(x){ return x.id !== id; });
+  empresasSave();
+  renderEmpresas();
+  refreshEmpresaSelects();
+}
+
+function refreshEmpresaSelects() {
+  // c-empresa e sol-empresa têm opções fixas no HTML — não sobrescrever
+}
+
+// ── FUNCIONÁRIOS ───────────────────────────────────────────────────────────
+function renderDash() {
+  const at = emps.filter(e => e.status==='ativo').length;
+  const pe = emps.filter(e => e.status==='pendente').length;
+  const atesPend = atestados.filter(function(a){ return a.status==='pendente'; }).length;
+  sel('d-total').textContent = emps.length;
+  sel('d-ativos').textContent = at;
+  sel('d-pendentes').textContent = pe;
+  sel('d-ates').textContent = atestados.length;
+  const dAtesSub = sel('d-ates-sub');
+  if(dAtesSub) dAtesSub.textContent = atesPend > 0 ? atesPend+' pendente'+(atesPend>1?'s':'') : 'recebidos';
+  // Subtítulo dinâmico
+  const sub = sel('d-subtitle');
+  if(sub){ const now=new Date(); sub.textContent='Resumo — '+now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}); }
+  const el = sel('d-emp-list'); if(!el) return;
+  el.innerHTML = emps.slice(0,4).map(e => {
+    const a = AV[(e.av || 0) % AV.length] || AV[0];
+    const stMap = {ativo:'b-green',inativo:'b-gray',pendente:'b-amber'};
+    const stLbl = {ativo:'Ativo',inativo:'Inativo',pendente:'Pendente'};
+    return '<div class="emp-row">'
+      + '<div class="av" style="background:'+a.bg+';color:'+a.c+'">'+ini(e.nome)+'</div>'
+      + '<div class="emp-info"><div class="emp-name">'+e.nome+'</div><div class="emp-sub">'+e.cargo+'</div></div>'
+      + '<span class="badge '+(stMap[e.status]||'b-green')+'">'+( stLbl[e.status]||'Ativo')+'</span>'
+      + '</div>';
+  }).join('');
+  renderSolicit();
+  renderDocsEnviados();
+}
+
+function renderEmps(list) {
+  const el = sel('emp-list'); if(!el) return;
+  if(!list || !list.length) { el.innerHTML = '<div style="color:#64748b;font-size:13px;padding:10px 0">Nenhum resultado.</div>'; return; }
+  el.innerHTML = list.map(e => {
+    const a = AV[(e.av || 0) % AV.length] || AV[0];
+    const st = e.status || 'ativo';
+    const stCls = {ativo:'b-green',inativo:'b-gray',pendente:'b-amber'};
+    const stLbl = {ativo:'Ativo',inativo:'Inativo',pendente:'Pendente'};
+    const togClass = st !== 'inativo' ? 'btn-y' : 'btn-g';
+    const togLabel = st !== 'inativo' ? 'Inativar' : 'Ativar';
+    const togStatus = st !== 'inativo' ? 'inativo' : 'ativo';
+    return '<div class="emp-row" style="opacity:'+(st==='inativo'?'.6':'1')+'">'
+      + '<div class="av" style="background:'+a.bg+';color:'+a.c+'">'+ini(e.nome)+'</div>'
+      + '<div class="emp-info"><div class="emp-name">'+e.nome+'</div><div class="emp-sub">'+e.cargo+(e.dept?' · '+e.dept:'')+'</div></div>'
+      + '<span class="badge '+(stCls[st]||'b-green')+'">'+( stLbl[st]||'Ativo')+'</span>'
+      + '<div class="btn-row">'
+        + '<button class="btn btn-sm" data-id="'+e.id+'" onclick="openFicha('+e.id+')">Ficha</button>'
+        + '<button class="btn btn-sm" onclick="openCad('+e.id+')">Editar</button>'
+        + (st==='pendente' ? '<button class="btn btn-sm btn-g" onclick="aceitarDireto('+e.id+')">✅ Aprovar</button><button class="btn btn-sm btn-r" onclick="recusarDireto('+e.id+')">Recusar</button>' : '<button class="btn btn-sm '+togClass+'" onclick="toggleStatus('+e.id+',\''+togStatus+'\')">'+togLabel+'</button>')
+        + '<button class="btn btn-sm btn-r" onclick="removeEmp('+e.id+')">Remover</button>'
+      + '</div></div>';
+  }).join('');
+}
+
+function filterEmps(q) {
+  let list = emps.filter(e =>
+    e.nome.toLowerCase().includes(q.toLowerCase()) ||
+    e.cpf.includes(q) ||
+    (e.cargo||'').toLowerCase().includes(q.toLowerCase())
+  );
+  if(statusFilter !== 'todos') list = list.filter(e => (e.status||'ativo') === statusFilter);
+  renderEmps(list);
+}
+
+function filterStatus(s, btn) {
+  statusFilter = s;
+  document.querySelectorAll('#status-tabs .ftab').forEach(b => b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  let list = statusFilter === 'todos' ? emps : emps.filter(e => (e.status||'ativo') === statusFilter);
+  renderEmps(list);
+}
+
+function toggleStatus(id, ns) {
+  const e = emps.find(x => x.id === id); if(!e) return;
+  const msg = ns === 'inativo' ? 'Inativar o acesso de '+e.nome+'?' : 'Reativar o acesso de '+e.nome+'?';
+  if(!confirm(msg)) return;
+  e.status = ns;
+  empsSave();
+  renderEmps(emps);
+  refreshSelects();
+  showT('t-func');
+}
+
+function removeEmp(id) {
+  if(!confirm('Remover este funcionário permanentemente?')) return;
+  emps = emps.filter(e => e.id !== id);
+  empsSave();
+  renderEmps(emps);
+  refreshSelects();
+}
+
+function refreshSelects() {
+  const active = emps.filter(e => (e.status||'ativo') !== 'inativo');
+  const opts = active.map(e => '<option value="'+e.id+'">'+e.nome+'</option>').join('');
+  const allOpts = emps.map(e => '<option value="'+e.id+'">'+e.nome+'</option>').join('');
+  ['pdf-dest','at-func'].forEach(id => { const el=sel(id); if(el) el.innerHTML=opts; });
+  const cd = sel('com-dest');
+  if(cd) cd.innerHTML = '<option value="todos">Todos os funcionários</option>' + allOpts;
+  updateNotify();
+  refreshEmpresaSelects();
+}
+
+function updateNotify() {
+  const el = sel('pdf-dest'); if(!el || !emps.length) return;
+  const e = emps.find(x => String(x.id) === String(el.value)) || emps[0]; if(!e) return;
+  const wz = sel('pdf-wz-val'); if(wz) wz.textContent = e.tel || '—';
+  const em = sel('pdf-em-val'); if(em) em.textContent = e.email || '—';
+}
+
+function updateComNotify() {
+  const v = gv('com-dest');
+  const box = sel('com-notify');
+  if(v === 'todos') { if(box) box.style.display = 'none'; return; }
+  if(box) box.style.display = 'block';
+  const e = emps.find(x => String(x.id) === String(v)); if(!e) return;
+  const wz = sel('com-wz'); if(wz) wz.textContent = e.tel || '—';
+  const em = sel('com-em'); if(em) em.textContent = e.email || '—';
+}
+
+// ── CADASTRO MODAL ─────────────────────────────────────────────────────────
+const CAD_REQ = [
+  {f:'c-nome', e:'ce-nome', ok: v => v.trim().length > 2},
+  {f:'c-cpf',  e:'ce-cpf',  ok: v => v.replace(/\D/g,'').length === 11},
+  {f:'c-nasc', e:'ce-nasc', ok: v => v !== ''},
+  {f:'c-tel',  e:'ce-tel',  ok: v => v.replace(/\D/g,'').length >= 10},
+  {f:'c-email',e:'ce-email',ok: v => /\S+@\S+\.\S+/.test(v)},
+  {f:'c-cargo',e:'ce-cargo',ok: v => v.trim().length > 1},
+  {f:'c-adm',  e:'ce-adm',  ok: v => v !== ''},
+  {f:'c-en',   e:'ce-en',   ok: v => v.trim().length > 2}
+];
+
+function cadProg() {
+  const filled = CAD_REQ.filter(r => { const el=sel(r.f); return el && r.ok(el.value); }).length;
+  const pct = Math.round(filled / CAD_REQ.length * 100);
+  const pf = sel('cad-prog-fill'); if(pf) pf.style.width = pct + '%';
+  const pt = sel('cad-prog-txt'); if(pt) pt.textContent = 'Progresso: '+filled+' de '+CAD_REQ.length+' campos obrigatórios';
+}
+
+function previewFoto(input) {
+  if(!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const src = e.target.result;
+    const img = sel('c-foto-preview');
+    const ph  = sel('c-foto-placeholder');
+    if(img) { img.src = src; img.style.display = 'block'; }
+    if(ph)  ph.style.display = 'none';
+    // Atualiza label
+    const labels = document.querySelectorAll('label[for="c-foto-input"], span[onclick*="c-foto-input"]');
+    labels.forEach(function(l){ if(l.style.color==='rgb(37, 99, 235)'||l.style.color==='#2563eb') l.textContent='Alterar foto'; });
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function popularEmpresaSelect(valorSelecionado) {
+  // Opções já estão fixas no HTML — apenas define o valor selecionado
+  var ids = ['c-empresa', 'sol-empresa'];
+  for(var i = 0; i < ids.length; i++) {
+    var el = document.getElementById(ids[i]);
+    if(!el) continue;
+    if(valorSelecionado) el.value = valorSelecionado;
+    else el.selectedIndex = 0;
+  }
+}
+
+function openCad(id) {
+  editId = id || null;
+  sel('cad-title').textContent = id ? 'Editar funcionário' : 'Novo cadastro de funcionário';
+  clearCad();
+  var empresaValor = '';
+  if(id) {
+    const e = emps.find(x => x.id === id); if(!e) return;
+    sv('c-nome',e.nome); sv('c-cpf',e.cpf); sv('c-nasc',e.nasc); sv('c-sexo',e.sexo); sv('c-estado',e.estado);
+    sv('c-tel',e.tel); sv('c-email',e.email);
+    sv('c-cargo',e.cargo); sv('c-dept',e.dept); sv('c-adm',e.adm); sv('c-contrato',e.contrato);
+    empresaValor = e.empresa || '';
+    sv('c-mae',e.mae); sv('c-pai',e.pai);
+    sv('c-en',e.en); sv('c-ep',e.ep); sv('c-et',e.et); sv('c-ew',e.ew);
+    sv('c-role', e.role||'funcionario');
+    if(e.foto) {
+      const img = sel('c-foto-preview'); const ph = sel('c-foto-placeholder');
+      if(img) { img.src = e.foto; img.style.display = 'block'; }
+      if(ph)  ph.style.display = 'none';
+    }
+  }
+  cadProg();
+  sel('ov-cad').classList.add('on');
+  // Popular APÓS o modal abrir para garantir que nada sobrescreve depois
+  setTimeout(function(){ popularEmpresaSelect(empresaValor); }, 0);
+}
+
+function closeCad() { sel('ov-cad').classList.remove('on'); editId = null; }
+
+function clearCad() {
+  ['c-nome','c-cpf','c-nasc','c-tel','c-email','c-cargo','c-adm','c-mae','c-pai','c-en','c-et','c-ew','c-senha']
+    .forEach(id => { const el=sel(id); if(el) { el.value=''; el.classList.remove('err'); } });
+  ['c-sexo','c-estado','c-dept','c-contrato','c-ep','c-role'].forEach(id => { const el=sel(id); if(el) { el.selectedIndex=0; } });
+  // c-empresa é populado separadamente em openCad() — não resetar aqui
+  // Reset foto
+  const img = sel('c-foto-preview'); if(img) { img.src=''; img.style.display='none'; }
+  const ph  = sel('c-foto-placeholder'); if(ph) ph.style.display='block';
+  const fi  = sel('c-foto-input'); if(fi) fi.value='';
+  document.querySelectorAll('.err-msg').forEach(e => e.classList.remove('on'));
+  sel('cad-err').classList.remove('on');
+}
+
+async function saveCad() {
+  let ok = true;
+  // Senha obrigatória apenas no cadastro novo
+  const senhaVal = gv('c-senha');
+  const isNovo = !editId;
+  if(isNovo && senhaVal.length < 6) {
+    const el = sel('c-senha'); const em = sel('ce-senha');
+    if(el) el.classList.add('err');
+    if(em) em.classList.add('on');
+    ok = false;
+  }
+
+  CAD_REQ.forEach(r => {
+    const el = sel(r.f); const em = sel(r.e);
+    if(!r.ok(el.value)) { el.classList.add('err'); em.classList.add('on'); ok=false; }
+    else { el.classList.remove('err'); em.classList.remove('on'); }
+  });
+  if(!ok) { showT('cad-err'); return; }
+
+  const existingEmp = editId ? emps.find(x=>x.id===editId) : null;
+
+  // Pega foto (base64)
+  const fotoInput = sel('c-foto-input');
+  let fotoBase64 = existingEmp ? existingEmp.foto||'' : '';
+  if(fotoInput && fotoInput.files && fotoInput.files[0]) {
+    // Já foi lida pelo previewFoto — pega do preview
+    const previewImg = sel('c-foto-preview');
+    if(previewImg && previewImg.src && previewImg.src.startsWith('data:')) fotoBase64 = previewImg.src;
+  }
+
+  const role = gv('c-role') || 'funcionario';
+  const data = {
+    nome:gv('c-nome'), cargo:gv('c-cargo'), cpf:gv('c-cpf'), nasc:gv('c-nasc'),
+    tel:gv('c-tel'), email:gv('c-email'),
+    sexo:gv('c-sexo'), estado:gv('c-estado'), dept:gv('c-dept'),
+    adm:gv('c-adm'), contrato:gv('c-contrato'), empresa:gv('c-empresa'),
+    mae:gv('c-mae'), pai:gv('c-pai'),
+    en:gv('c-en'), ep:gv('c-ep'), et:gv('c-et'), ew:gv('c-ew'),
+    role: role,
+    foto: fotoBase64,
+    status: existingEmp ? existingEmp.status||'ativo' : 'ativo',
+    senha: senhaVal.length >= 6 ? (await hashSenha(senhaVal)) : (existingEmp ? existingEmp.senha||'' : '')
+  };
+
+  if(editId) {
+    const idx = emps.findIndex(x => x.id === editId);
+    if(idx >= 0) emps[idx] = {...emps[idx], ...data};
+    // Atualiza ADMINS se role mudou
+    sincronizarAdmin(data, emps[idx] || data);
+  } else {
+    data.id = nextId++;
+    data.av = emps.length % AV.length;
+    emps.push(data);
+    sincronizarAdmin(data, data);
+  }
+
+  empsSave();
+  closeCad();
+  // Reseta filtro para "Todos" para garantir que o novo funcionário apareça
+  statusFilter = 'todos';
+  document.querySelectorAll('#status-tabs .ftab').forEach(function(b){ b.classList.remove('on'); });
+  var todosBtn = document.querySelector('#status-tabs .ftab');
+  if(todosBtn) todosBtn.classList.add('on');
+  renderDash();
+  navTo('p-func','si-func','Funcionários');
+  showT('t-func');
+}
+
+function sincronizarAdmin(data, emp) {
+  const emailLow = (data.email||'').toLowerCase();
+  const cpfNum   = (data.cpf||'').replace(/\D/g,'');
+  // Remove da lista de admins se existia
+  ADMINS = ADMINS.filter(a => a.email.toLowerCase() !== emailLow && a.cpf !== cpfNum);
+  // Adiciona se role = admin
+  if(data.role === 'admin') {
+    ADMINS.push({email: data.email, cpf: cpfNum, senha: data.senha, nome: data.nome});
+  }
+}
+
+// ── PERFIL ─────────────────────────────────────────────────────────────────
+function openPerfil() {
+  if (!currentUser) return;
+  const body = sel('perfil-body'); if (!body) return;
+  const isAdmin = currentUser.role === 'admin';
+  const emp = (!isAdmin && currentUser.id) ? emps.find(function(e){ return e.id === currentUser.id; }) : null;
+
+  // Para admin que também está no emps (ex: Amanda), pega os dados completos
+  const empAdmin = isAdmin ? emps.find(function(e){
+    return e.email && e.email.toLowerCase() === (currentUser.email||'').toLowerCase();
+  }) : null;
+
+  const data = emp || empAdmin || {};
+  const nome  = currentUser.nome || '—';
+  const cargo = data.cargo || (isAdmin ? 'Administrador' : '—');
+  const cpf   = data.cpf   || '—';
+  const nasc  = data.nasc  ? fmtD(data.nasc) : '—';
+  const tel   = data.tel   || '—';
+  const email = data.email || '—';
+  const dept  = data.dept  || '—';
+  const empresa = data.empresa || '—';
+  const adm   = data.adm   ? fmtD(data.adm)  : '—';
+  const contrato = data.contrato || '—';
+  const status = data.status || (isAdmin ? 'ativo' : '—');
+  const sexo  = data.sexo  || '—';
+  const mae   = data.mae   || '—';
+  const pai   = data.pai   || '—';
+  const en    = data.en    || '—';
+  const et    = data.et    || '—';
+
+  const stCls = {ativo:'b-green', inativo:'b-gray', pendente:'b-amber'};
+  const stLbl = {ativo:'Ativo', inativo:'Inativo', pendente:'Pendente'};
+  const role  = isAdmin ? 'Administrador' : 'Funcionário';
+
+  const empId = data.id || null;
+  // Foto: preferência emps, depois adminFotos (para admins sem registro em emps)
+  const adminEmail = isAdmin ? (currentUser.email || currentUser.nome || 'admin') : null;
+  const fotoSrc = data.foto || (adminEmail ? adminFotos[adminEmail] : '') || '';
+  const fotoHtml = fotoCirculo(fotoSrc, nome, 72, 'perfil-ov-foto-input');
+  const fotoInput = empId
+    ? '<input type="file" id="perfil-ov-foto-input" accept="image/*" style="display:none" onchange="salvarFotoPerfil(this,'+empId+')">'
+    : '<input type="file" id="perfil-ov-foto-input" accept="image/*" style="display:none" onchange="salvarFotoAdmin(this)">';
+
+  function row(label, val) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #0f172a">'
+      + '<span style="color:#64748b;font-size:12px">'+label+'</span>'
+      + '<span style="color:#e2e8f0;font-size:12px;font-weight:500;text-align:right;max-width:60%">'+val+'</span>'
+      + '</div>';
+  }
+
+  body.innerHTML =
+    fotoInput
+    // Cabeçalho com foto e nome
+    + '<div style="display:flex;align-items:center;gap:16px;padding:4px 0 20px;border-bottom:1px solid #1e293b;margin-bottom:16px">'
+      + fotoHtml
+      + '<div>'
+        + '<div style="font-size:15px;font-weight:600;color:#fff">'+nome+'</div>'
+        + '<div style="font-size:12px;color:#60a5fa;margin-top:2px">'+cargo+'</div>'
+        + '<span class="badge '+(stCls[status]||'b-green')+'" style="margin-top:6px;display:inline-block">'+(stLbl[status]||'Ativo')+'</span>'
+        + '<span style="margin-left:8px;font-size:10px;color:#475569;background:#0f172a;border-radius:4px;padding:2px 7px">'+role+'</span>'
+      + '</div>'
+    + '</div>'
+    // Dados pessoais
+    + '<div style="font-size:10px;color:#475569;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Dados pessoais</div>'
+    + row('CPF', cpf)
+    + row('Data de nascimento', nasc)
+    + row('Sexo', sexo)
+    // Contato
+    + '<div style="font-size:10px;color:#475569;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin:14px 0 6px">Contato</div>'
+    + row('Telefone / WhatsApp', tel)
+    + row('E-mail', email)
+    // Dados profissionais
+    + '<div style="font-size:10px;color:#475569;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin:14px 0 6px">Dados profissionais</div>'
+    + row('Cargo', cargo)
+    + row('Departamento', dept)
+    + row('Contrato / Empresa', empresa)
+    + row('Tipo de contrato', contrato)
+    + row('Data de admissão', adm)
+    // Filiação
+    + '<div style="font-size:10px;color:#475569;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin:14px 0 6px">Filiação</div>'
+    + row('Nome da mãe', mae)
+    + row('Nome do pai', pai)
+    // Contato de emergência
+    + '<div style="font-size:10px;color:#475569;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin:14px 0 6px">Contato de emergência</div>'
+    + row('Nome', en)
+    + row('Telefone', et);
+
+  sel('ov-perfil').classList.add('on');
+  closeMobMenu();
+}
+
+// ── SOLICITAÇÕES DE CADASTRO ───────────────────────────────────────────────
+var solicitId = null; // id do pendente sendo visualizado
+
+function renderSolicit() {
+  var pendentes = emps.filter(function(e){ return e.status === 'pendente'; });
+  var card = sel('d-solicit-card');
+  var list = sel('d-solicit-list');
+  var badge = sel('d-solicit-badge');
+  var sbBadge = sel('sb-solicit-badge');
+  if(!list) return;
+
+  if(pendentes.length === 0) {
+    if(card) card.style.display = 'none';
+    if(sbBadge) sbBadge.style.display = 'none';
+    return;
+  }
+
+  if(card) card.style.display = 'block';
+  if(badge) badge.textContent = pendentes.length;
+  if(sbBadge) { sbBadge.style.display = 'inline-block'; sbBadge.textContent = pendentes.length; }
+
+  list.innerHTML = pendentes.map(function(e){
+    var av = AV[e.av % AV.length];
+    return '<div class="sol-card">'
+      + '<div class="sb-av" style="background:'+av.bg+';color:'+av.c+';width:36px;height:36px;font-size:12px;flex-shrink:0">'+(e.foto?'<img src="'+e.foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">':ini(e.nome))+'</div>'
+      + '<div class="sol-info">'
+        + '<div class="sol-nome">'+e.nome+'</div>'
+        + '<div class="sol-sub">'+(e.cargo||'Cargo não informado')+' · '+(e.email||'—')+'</div>'
+      + '</div>'
+      + '<div class="sol-btns">'
+        + '<button class="btn btn-sm btn-p" onclick="aceitarDireto('+e.id+')">Aceitar</button>'
+        + '<button class="btn btn-sm" onclick="abrirSolicit('+e.id+')">Visualizar</button>'
+        + '<button class="btn btn-sm btn-r" onclick="recusarDireto('+e.id+')">Recusar</button>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function abrirSolicit(id) {
+  var e = emps.find(function(x){ return x.id === id; });
+  if(!e) return;
+  solicitId = id;
+  sv('sol-nome', e.nome); sv('sol-cpf', e.cpf); sv('sol-nasc', e.nasc);
+  sv('sol-tel', e.tel); sv('sol-email', e.email); sv('sol-cargo', e.cargo);
+  sv('sol-mae', e.mae); sv('sol-pai', e.pai); sv('sol-en', e.en); sv('sol-et', e.et);
+  sv('sol-adm', e.adm||'');
+  var fields = { 'sol-sexo': e.sexo, 'sol-estado': e.estado, 'sol-dept': e.dept, 'sol-contrato': e.contrato };
+  Object.keys(fields).forEach(function(fid){ var el=sel(fid); if(el) el.value=fields[fid]||''; });
+  var empValor = e.empresa || '';
+  sel('ov-solicit').classList.add('on');
+  setTimeout(function(){ popularEmpresaSelect(empValor); }, 0);
+}
+
+function salvarSolicit() {
+  if(!solicitId) return;
+  var idx = emps.findIndex(function(x){ return x.id === solicitId; });
+  if(idx < 0) return;
+  emps[idx] = Object.assign({}, emps[idx], {
+    nome: gv('sol-nome'), cpf: gv('sol-cpf'), nasc: gv('sol-nasc'),
+    tel: gv('sol-tel'), email: gv('sol-email'), cargo: gv('sol-cargo'),
+    sexo: gv('sol-sexo'), estado: gv('sol-estado'), dept: gv('sol-dept'),
+    empresa: gv('sol-empresa'), contrato: gv('sol-contrato'), adm: gv('sol-adm'),
+    mae: gv('sol-mae'), pai: gv('sol-pai'), en: gv('sol-en'), et: gv('sol-et')
+  });
+  empsSave();
+  showT('t-solicit-ok');
+}
+
+function aceitarSolicit() {
+  if(!solicitId) return;
+  var e = emps.find(function(x){ return x.id === solicitId; });
+  if(!e) return;
+  salvarSolicit();
+  setTimeout(function(){
+    var e2 = emps.find(function(x){ return x.id === solicitId; });
+    if(e2) e2.status = 'ativo';
+    empsSave();
+    closeOverlay('ov-solicit');
+    solicitId = null;
+    renderDash(); renderEmps(emps); refreshSelects();
+  }, 600);
+}
+
+function recusarSolicit() {
+  if(!solicitId) return;
+  var e = emps.find(function(x){ return x.id === solicitId; });
+  if(!e || !confirm('Recusar o cadastro de '+e.nome+'? O registro será removido.')) return;
+  emps = emps.filter(function(x){ return x.id !== solicitId; });
+  empsSave();
+  closeOverlay('ov-solicit');
+  solicitId = null;
+  renderDash(); renderEmps(emps); refreshSelects();
+}
+
+function aceitarDireto(id) {
+  var e = emps.find(function(x){ return x.id === id; });
+  if(!e || !confirm('Aceitar o cadastro de '+e.nome+'?')) return;
+  e.status = 'ativo';
+  empsSave();
+  renderDash(); renderEmps(emps); refreshSelects();
+}
+
+function recusarDireto(id) {
+  var e = emps.find(function(x){ return x.id === id; });
+  if(!e || !confirm('Recusar e remover o cadastro de '+e.nome+'?')) return;
+  emps = emps.filter(function(x){ return x.id !== id; });
+  empsSave();
+  renderDash(); renderEmps(emps); refreshSelects();
+}
+
+// ── FICHA ──────────────────────────────────────────────────────────────────
+function openFicha(id) {
+  const e = emps.find(x => x.id === id); if(!e) return;
+  const a = AV[e.av % AV.length];
+  const st = e.status || 'ativo';
+  const stCls = {ativo:'b-green',inativo:'b-gray',pendente:'b-amber'};
+  const stLbl = {ativo:'Ativo',inativo:'Inativo',pendente:'Pendente'};
+  const fb = sel('ficha-body'); if(!fb) return;
+  fb.innerHTML =
+    '<div class="ficha-head">'
+    + '<div class="ficha-av" style="background:'+a.bg+';color:'+a.c+'">'+ini(e.nome)+'</div>'
+    + '<div><div style="font-size:15px;font-weight:500">'+e.nome+'</div>'
+    + '<div style="color:#64748b;font-size:12px;margin-top:2px">'+e.cargo+(e.dept?' · '+e.dept:'')+'</div>'
+    + '<span class="badge '+(stCls[st]||'b-green')+'" style="margin-top:6px;display:inline-block">'+( stLbl[st]||'Ativo')+'</span></div>'
+    + '</div>'
+    + fichaBlock('Dados pessoais', [
+        ['CPF', '<span style="color:#475569">'+( e.cpf||'—')+'</span>'],
+        ['Nascimento', fmtD(e.nasc)], ['Sexo', e.sexo||'—'], ['Estado civil', e.estado||'—']
+      ])
+    + fichaBlock('Contato', [
+        ['WhatsApp / Tel.', e.tel||'—'], ['Tel. alternativo', e.tel2||'—'], ['E-mail', e.email||'—']
+      ])
+    + fichaBlock('Profissional', [
+        ['Cargo', e.cargo||'—'], ['Departamento', e.dept||'—'],
+        ['Contrato', e.contrato||'—'], ['Empresa', e.empresa||'—'], ['Admissão', fmtD(e.adm)]
+      ])
+    + fichaBlock('Filiação', [['Nome da mãe', e.mae||'—'], ['Nome do pai', e.pai||'—']])
+    + fichaBlock('Contato de emergência', [
+        ['Nome', e.en||'—'], ['Parentesco', e.ep||'—'],
+        ['Telefone', e.et||'—'], ['WhatsApp', e.ew||'—']
+      ], '#f87171');
+  sel('ov-ficha').classList.add('on');
+}
+
+function fichaBlock(title, rows, titleColor) {
+  return '<div class="ficha-sec"><div class="ficha-sec-title"'+(titleColor?' style="color:'+titleColor+'"':'')+'>'+title+'</div>'
+    + rows.map(r => '<div class="ficha-row"><div class="ficha-lbl">'+r[0]+'</div><div class="ficha-val">'+r[1]+'</div></div>').join('')
+    + '</div>';
+}
+
+function closeOverlay(id) { const el = sel(id); if(el) el.classList.remove('on'); }
+
+// ── DOCUMENTOS ─────────────────────────────────────────────────────────────
+var docsFiltro = 'todos';
+
+function enviarDoc() {
+  var destEl = sel('pdf-dest');
+  var tipo = gv('pdf-tipo');
+  var nome = gv('pdf-nome').trim();
+  var fileInput = sel('pdf-file-input');
+  var empId = destEl ? parseInt(destEl.value) : null;
+
+  if (!empId || !tipo || !nome || !fileInput || !fileInput.files || !fileInput.files[0]) {
+    showT('t-pdf-err'); return;
+  }
+
+  var emp = emps.find(function(e){ return e.id === empId; });
+  var file = fileInput.files[0];
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var now = new Date();
+    documentos.push({
+      id: docsNextId++,
+      empId: empId,
+      empNome: emp ? emp.nome : '—',
+      tipo: tipo,
+      nome: nome,
+      fileBase64: ev.target.result,
+      fileName: file.name,
+      data: now.toISOString().split('T')[0]
+    });
+    docsSave();
+    renderDocsEnviados();
+    renderDash();
+    showT('t-pdf');
+    // Limpa form
+    if(destEl) destEl.selectedIndex = 0;
+    var tipoEl = sel('pdf-tipo'); if(tipoEl) tipoEl.selectedIndex = 0;
+    var nomeEl = sel('pdf-nome'); if(nomeEl) nomeEl.value = '';
+    fileInput.value = '';
+    var fn = sel('pdf-file-name'); if(fn) fn.textContent = '';
+    updateNotify();
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderDocsEnviados() {
+  var list = sel('docs-enviados-list'); if(!list) return;
+  if(!documentos.length) {
+    list.innerHTML = '<div style="color:#64748b;font-size:12px;padding:8px 0">Nenhum documento enviado ainda.</div>';
+    return;
+  }
+  var recentes = documentos.slice().reverse().slice(0, 10);
+  list.innerHTML = recentes.map(function(d) {
+    return '<div class="pdf-row">'
+      + '<div class="pdf-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg></div>'
+      + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+d.nome+'</div><div style="font-size:11px;color:#64748b">'+d.empNome+' · '+fmtD(d.data)+'</div></div>'
+      + '<span class="badge b-blue" style="flex-shrink:0">'+d.tipo+'</span>'
+      + '</div>';
+  }).join('');
+  // Atualiza também o painel do dashboard
+  var dRecentes = sel('d-docs-recentes');
+  if(dRecentes) dRecentes.innerHTML = recentes.slice(0,4).map(function(d) {
+    return '<div class="act-item"><div class="act-dot" style="background:#2563eb"></div><div class="act-txt">'+d.tipo+' <strong style="color:#fff">'+d.nome+'</strong> → '+d.empNome+'</div><div class="act-time">'+fmtD(d.data)+'</div></div>';
+  }).join('') || '<div style="color:#64748b;font-size:12px">Nenhum documento enviado ainda.</div>';
+}
+
+function renderMeusDocs() {
+  if (!currentUser) return;
+  var list = sel('meus-docs-list'); if(!list) return;
+  var isAdmin = currentUser.role === 'admin';
+
+  // Atualiza título/subtítulo conforme o papel
+  var titleEl = sel('docs-page-title');
+  var subEl = sel('docs-page-sub');
+  var tabsEl = sel('docs-tabs');
+
+  if (isAdmin) {
+    // Admin vê todos os atestados/documentos enviados pelos funcionários
+    if(titleEl) titleEl.textContent = 'Documentos dos funcionários';
+    if(subEl) subEl.textContent = 'Arquivos enviados pelos funcionários';
+    // Esconde as abas de filtro por tipo (atestados têm tipo próprio)
+    if(tabsEl) tabsEl.style.display = 'none';
+
+    var filtrados = atestados.slice();
+    if(!filtrados.length) {
+      list.innerHTML = '<div style="color:#64748b;font-size:13px;padding:30px 0;text-align:center">'
+        + '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" style="display:block;margin:0 auto 8px;opacity:.3"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z" stroke="#94a3b8" stroke-width="1.5"/></svg>'
+        + 'Nenhum documento enviado pelos funcionários ainda.</div>';
+      return;
+    }
+    var stMap = {pendente:'b-amber',aprovado:'b-green',recusado:'b-red'};
+    var stLbl = {pendente:'Pendente',aprovado:'Aprovado',recusado:'Recusado'};
+    list.innerHTML = filtrados.slice().reverse().map(function(a) {
+      return '<div class="pdf-row">'
+        + '<div class="pdf-icon" style="background:#1e3a6e"><svg viewBox="0 0 24 24" fill="#60a5fa"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg></div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:13px;font-weight:600;color:#fff">'+a.empNome+'</div>'
+          + '<div style="font-size:12px;color:#94a3b8;margin-top:1px">'+a.tipo+' · '+fmtD(a.envioDate||a.dataEmissao)+'</div>'
+          + (a.obs ? '<div style="font-size:11px;color:#64748b;margin-top:1px">'+a.obs+'</div>' : '')
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+          + '<span class="badge '+(stMap[a.status]||'b-gray')+'">'+(stLbl[a.status]||a.status)+'</span>'
+          + (a.fileBase64 ? '<a class="btn btn-sm btn-p" href="'+a.fileBase64+'" download="'+(a.fileName||'atestado')+'">Baixar</a>' : '')
+        + '</div>'
+        + '</div>';
+    }).join('');
+  } else {
+    // Funcionário vê documentos enviados pelo admin
+    if(titleEl) titleEl.textContent = 'Meus documentos';
+    if(subEl) subEl.textContent = 'Arquivos enviados pelo administrador';
+    if(tabsEl) tabsEl.style.display = '';
+
+    var meus = documentos.filter(function(d){ return d.empId === currentUser.id; });
+    if(docsFiltro !== 'todos') {
+      if(docsFiltro === 'Outros') {
+        meus = meus.filter(function(d){ return d.tipo !== 'Holerite' && d.tipo !== 'Contrato'; });
+      } else {
+        meus = meus.filter(function(d){ return d.tipo === docsFiltro; });
+      }
+    }
+    if(!meus.length) {
+      list.innerHTML = '<div style="color:#64748b;font-size:13px;padding:30px 0;text-align:center">'
+        + '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" style="display:block;margin:0 auto 8px;opacity:.3"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z" stroke="#94a3b8" stroke-width="1.5"/></svg>'
+        + 'Nenhum documento'+(docsFiltro!=='todos'?' deste tipo':'')+' recebido ainda.</div>';
+      return;
+    }
+    list.innerHTML = meus.slice().reverse().map(function(d) {
+      return '<div class="pdf-row">'
+        + '<div class="pdf-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg></div>'
+        + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500">'+d.nome+'</div><div style="font-size:11px;color:#64748b">'+d.tipo+' · '+fmtD(d.data)+'</div></div>'
+        + '<div class="btn-row" style="flex-shrink:0">'
+          + '<a class="btn btn-sm" href="'+d.fileBase64+'" target="_blank">Ver</a>'
+          + '<a class="btn btn-sm btn-p" href="'+d.fileBase64+'" download="'+d.fileName+'">Baixar</a>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+}
+
+function filtrarDocs(tipo, btn) {
+  if(currentUser && currentUser.role === 'admin') return;
+  docsFiltro = tipo;
+  document.querySelectorAll('#docs-tabs .ftab').forEach(function(b){ b.classList.remove('on'); });
+  if(btn) btn.classList.add('on');
+  renderMeusDocs();
+}
+
+function renderFuncUltimoHolerite() {
+  if (!currentUser) return;
+  var holerites = documentos.filter(function(d){ return d.empId === currentUser.id && d.tipo === 'Holerite'; });
+  var el = sel('func-ultimo-holerite'); if(!el) return;
+  if(!holerites.length) {
+    el.innerHTML = '<div style="color:#64748b;font-size:12px">Nenhum holerite recebido ainda.</div>'; return;
+  }
+  var d = holerites[holerites.length - 1];
+  el.innerHTML = '<div class="pdf-row" style="border:none;padding:0">'
+    + '<div class="pdf-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg></div>'
+    + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+d.nome+'</div><div style="font-size:11px;color:#64748b">'+fmtD(d.data)+'</div></div>'
+    + '<a class="btn btn-sm btn-p" href="'+d.fileBase64+'" download="'+d.fileName+'" style="flex-shrink:0">Baixar</a>'
+    + '</div>';
+}
+
+function renderFuncDocsRecentes() {
+  if (!currentUser) return;
+  var meus = documentos.filter(function(d){ return d.empId === currentUser.id; }).slice().reverse().slice(0, 3);
+  var el = sel('func-docs-recentes'); if(!el) return;
+  if(!meus.length) {
+    el.innerHTML = '<div style="color:#64748b;font-size:12px">Nenhum documento recebido ainda.</div>'; return;
+  }
+  el.innerHTML = meus.map(function(d) {
+    return '<div class="pdf-row" style="padding:8px 0">'
+      + '<div class="pdf-icon" style="width:28px;height:28px;border-radius:6px"><svg viewBox="0 0 24 24" width="13" height="13"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg></div>'
+      + '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+d.nome+'</div><div style="font-size:10px;color:#64748b">'+d.tipo+' · '+fmtD(d.data)+'</div></div>'
+      + '<a class="btn btn-sm" href="'+d.fileBase64+'" download="'+d.fileName+'" style="flex-shrink:0">Baixar</a>'
+      + '</div>';
+  }).join('');
+}
+
+// ── UPLOAD HELPERS ────────────────────────────────────────────────────────
+function showFileName(input, labelId) {
+  var el = document.getElementById(labelId);
+  if (el && input.files && input.files[0]) {
+    el.textContent = input.files[0].name;
+  }
+}
+function checkAtBtn() {
+  var fileInput = document.getElementById('at-file-input');
+  var btn = document.getElementById('at-btn');
+  if (!btn) return;
+  var hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+  var dateVal = (document.getElementById('at-data') || {}).value;
+  var withinDeadline = false;
+  if (dateVal) {
+    var emission = new Date(dateVal + 'T00:00:00');
+    var diffH = (new Date() - emission) / (1000*60*60);
+    withinDeadline = diffH <= 48;
+  }
+  if (hasFile && withinDeadline) {
+    btn.style.opacity = '1'; btn.style.cursor = 'pointer'; btn.disabled = false;
+  } else if (!hasFile) {
+    btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed'; btn.disabled = true;
+  }
+}
+
+// ── ATESTADO ───────────────────────────────────────────────────────────────
+function checkPrazo() {
+  const val = gv('at-data'); if(!val) return;
+  const emission = new Date(val + 'T00:00:00');
+  const diffH = (new Date() - emission) / (1000*60*60);
+  const deadline = new Date(emission.getTime() + 48*60*60*1000);
+  const dl = deadline.toLocaleDateString('pt-BR');
+  const box = sel('prazo-box');
+  const dot = sel('prazo-dot');
+  const txt = sel('prazo-txt');
+  const err = sel('prazo-err');
+  const ok  = sel('prazo-ok');
+  const btn = sel('at-btn');
+  if(diffH > 48) {
+    if(err) err.style.display = 'block';
+    if(ok)  ok.style.display  = 'none';
+    if(box) box.style.display = 'none';
+    if(btn) { btn.style.opacity='.4'; btn.style.cursor='not-allowed'; btn.disabled=true; }
+  } else {
+    if(err) err.style.display = 'none';
+    if(ok)  ok.style.display  = 'block';
+    if(box) { box.style.display='flex'; dot.style.background='#4ade80'; txt.style.color='#4ade80'; txt.textContent='Dentro do prazo. Limite: '+dl+'. Restam '+Math.max(0,Math.round(48-diffH))+'h.'; }
+    if(btn) { btn.style.opacity='1'; btn.style.cursor='pointer'; btn.disabled=false; }
+  }
+  checkAtBtn();
+}
+
+// ── COMUNICADOS + AGENDAMENTO ──────────────────────────────────────────────
+function setCh(ch) {
+  comCh = ch;
+  ['wz','em','both'].forEach(k => {
+    const el = sel('ch-'+k); if(!el) return;
+    if(k === ch) {
+      const styles = {wz:'background:#128c7e;color:#fff;border-color:#128c7e', em:'background:#1e3a6e;color:#60a5fa;border-color:#1e3a6e', both:'background:#334155;color:#d1d5db;border-color:#334155'};
+      el.style.cssText = styles[ch] + ';opacity:1';
+    } else {
+      el.style.opacity = '.5'; el.style.background='transparent'; el.style.color='#94a3b8'; el.style.borderColor='#334155';
+    }
+  });
+}
+
+function setAg(mode) {
+  agMode = mode;
+  const fields = sel('ag-sched-fields');
+  const info   = sel('ag-now-info');
+  const btnNow = sel('ag-now-btn');
+  const btnSch = sel('ag-sched-btn');
+  if(mode === 'sched') {
+    if(fields) fields.style.display = 'block';
+    if(info)   info.style.display   = 'none';
+    if(btnSch) { btnSch.classList.add('btn-p'); }
+    if(btnNow) { btnNow.classList.remove('btn-p'); }
+  } else {
+    if(fields) fields.style.display = 'none';
+    if(info)   info.style.display   = 'block';
+    if(btnNow) { btnNow.classList.add('btn-p'); }
+    if(btnSch) { btnSch.classList.remove('btn-p'); }
+  }
+}
+
+function addDate() {
+  const d = gv('ag-date');
+  const h = gv('ag-time') || '08:00';
+  if(!d) { alert('Selecione uma data.'); return; }
+  if(agDates.find(x => x.d === d && x.h === h)) { alert('Essa data/hora já foi adicionada.'); return; }
+  agDates.push({d, h, id: Date.now()});
+  renderAgTags();
+  sv('ag-date', '');
+}
+
+function removeDate(id) {
+  agDates = agDates.filter(x => x.id !== id);
+  renderAgTags();
+}
+
+function renderAgTags() {
+  const el = sel('ag-tags'); if(!el) return;
+  if(!agDates.length) { el.innerHTML = '<div style="color:#475569;font-size:11px">Nenhuma data adicionada.</div>'; return; }
+  el.innerHTML = agDates.map(a => {
+    const p = a.d.split('-');
+    return '<span class="ag-tag"><span>'+p[2]+'/'+p[1]+'/'+p[0]+'</span><small>'+a.h+'</small><button onclick="removeDate('+a.id+')">×</button></span>';
+  }).join('');
+}
+
+function renderScheduled() {
+  const el = sel('ag-list'); if(!el) return;
+  const badge = sel('ag-count'); if(badge) badge.textContent = scheduled.length;
+  const dashBadge = sel('d-ag'); if(dashBadge) dashBadge.textContent = scheduled.length;
+  if(!scheduled.length) { el.innerHTML = '<div style="color:#475569;font-size:12px">Nenhuma mensagem agendada.</div>'; return; }
+  el.innerHTML = scheduled.map((m,i) => {
+    const chStyle = {wz:'background:#128c7e;color:#fff', em:'background:#1e3a6e;color:#60a5fa', both:'background:#334155;color:#d1d5db'}[m.ch] || '';
+    const chLbl = {wz:'WZ', em:'Email', both:'WZ+Email'}[m.ch] || '';
+    return '<div class="ag-msg">'
+      + '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;margin-bottom:2px">'+m.titulo+'</div>'
+      + '<div style="font-size:10px;color:#64748b;margin-bottom:4px">'+m.dest+' · '+m.datas.join(', ')+'</div>'
+      + '<span class="badge" style="'+chStyle+'">'+chLbl+'</span></div>'
+      + '<button onclick="cancelScheduled('+i+')" style="background:none;border:none;color:#475569;cursor:pointer;font-size:18px;line-height:1;flex-shrink:0;padding:0">×</button>'
+      + '</div>';
+  }).join('');
+}
+
+function cancelScheduled(i) {
+  if(!confirm('Cancelar este agendamento?')) return;
+  scheduled.splice(i, 1);
+  renderScheduled();
+}
+
+// Histórico de comunicados: [{titulo, msg, dest, ch, data, datas}]
+var comunicados = (function(){ try{ return JSON.parse(localStorage.getItem('dp_coms')||'[]'); }catch(e){ return []; } })();
+function comsSave(){ try{ localStorage.setItem('dp_coms', JSON.stringify(comunicados)); }catch(e){} }
+
+// Avisos internos
+var avisos = (function(){ try{ return JSON.parse(localStorage.getItem('dp_avisos')||'[]'); }catch(e){ return []; } })();
+function avisosSave(){ try{ localStorage.setItem('dp_avisos', JSON.stringify(avisos)); }catch(e){} }
+
+function abrirModalAviso() {
+  sv('avi-titulo',''); sv('avi-msg','');
+  sel('ov-aviso').classList.add('on');
+}
+
+function publicarAviso() {
+  var titulo = gv('avi-titulo').trim();
+  var msg = gv('avi-msg').trim();
+  if(!titulo || !msg) { alert('Preencha o título e a mensagem.'); return; }
+  var now = new Date().toISOString().split('T')[0];
+  avisos.push({titulo:titulo, msg:msg, data:now});
+  avisosSave();
+  sv('avi-titulo',''); sv('avi-msg','');
+  closeOverlay('ov-aviso');
+  renderAvisos();
+  showT('t-avi');
+}
+
+function renderAvisos() {
+  var el = sel('avisos-list'); if(!el) return;
+  if(!avisos.length) { el.innerHTML = '<div style="color:#64748b;font-size:13px;padding:10px 0">Nenhum aviso publicado ainda.</div>'; return; }
+  var today = new Date().toISOString().split('T')[0];
+  el.innerHTML = avisos.slice().reverse().map(function(a){
+    var isNew = a.data === today;
+    return '<div class="aviso" style="margin-bottom:10px">'
+      + (isNew ? '<span class="badge b-blue" style="margin-bottom:6px;display:inline-block">Novo</span>' : '')
+      + '<div class="aviso-title">'+a.titulo+'</div>'
+      + '<div class="aviso-txt">'+a.msg+'</div>'
+      + '<div class="aviso-meta">'+fmtD(a.data)+'</div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderComFunc() {
+  var el = sel('com-func-list'); if(!el) return;
+  // Mostra todos (para "Todos") — futuramente pode filtrar por destinatário
+  var todos = comunicados.filter(function(c){ return c.dest === 'Todos os funcionários' || !c.dest; });
+  if(!todos.length) { el.innerHTML = '<div style="color:#64748b;font-size:13px;padding:10px 0">Nenhum comunicado recebido ainda.</div>'; return; }
+  var chLbl = {wz:'via WhatsApp',em:'via E-mail',both:'via WhatsApp + E-mail'};
+  el.innerHTML = todos.slice().reverse().map(function(c){
+    return '<div class="aviso" style="margin-bottom:8px">'
+      + '<span class="badge b-blue" style="margin-bottom:6px;display:inline-block">Novo</span>'
+      + '<div class="aviso-title">'+c.titulo+'</div>'
+      + '<div class="aviso-txt">'+c.msg+'</div>'
+      + '<div class="aviso-meta">'+(c.data?fmtD(c.data):'')+(c.ch?' · '+(chLbl[c.ch]||c.ch):'')+'</div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderComHistorico() {
+  var el = sel('com-historico'); if(!el) return;
+  if(!comunicados.length) { el.innerHTML = '<div style="color:#475569;font-size:12px">Nenhum comunicado enviado ainda.</div>'; return; }
+  var chMap = {wz:'WZ',em:'email',both:'WZ+email'};
+  var chCls = {wz:'b-green',em:'b-blue',both:'b-amber'};
+  el.innerHTML = comunicados.slice().reverse().slice(0,10).map(function(c){
+    return '<div class="aviso" style="margin-bottom:8px">'
+      + '<span class="badge '+(chCls[c.ch]||'b-blue')+'" style="margin-bottom:5px;display:inline-block">'+(chMap[c.ch]||c.ch)+'</span>'
+      + '<div class="aviso-title">'+c.titulo+'</div>'
+      + '<div class="aviso-txt">'+c.msg+'</div>'
+      + '<div class="aviso-meta">'+(c.data?fmtD(c.data):'')+(c.dest?' · '+c.dest:'')+'</div>'
+      + '</div>';
+  }).join('');
+}
+
+function sendCom() {
+  const titulo = gv('com-titulo').trim();
+  const msg    = gv('com-msg').trim();
+  if(!titulo || !msg) { alert('Preencha o título e a mensagem.'); return; }
+  const destEl = sel('com-dest');
+  const destTxt = destEl ? destEl.options[destEl.selectedIndex].text : 'Todos';
+  const now = new Date().toISOString().split('T')[0];
+  if(agMode === 'sched') {
+    if(!agDates.length) { alert('Adicione pelo menos uma data para o agendamento.'); return; }
+    const datas = agDates.map(a => { const p=a.d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]+' '+a.h; });
+    scheduled.push({titulo, msg, dest:destTxt, ch:comCh, datas});
+    agDates = [];
+    renderAgTags();
+    renderScheduled();
+  } else {
+    // Salva no histórico
+    comunicados.push({titulo, msg, dest:destTxt, ch:comCh, data:now});
+    comsSave();
+    renderComHistorico();
+  }
+  sv('com-titulo', ''); sv('com-msg', '');
+  showT('t-com');
+}
+
+// ── CADASTRO PÚBLICO ───────────────────────────────────────────────────────
+const R_REQ = [
+  {f:'r-nome',    e:'re-nome',    ok: v => v.trim().length > 2},
+  {f:'r-cpf',     e:'re-cpf',     ok: v => v.replace(/\D/g,'').length === 11},
+  {f:'r-nasc',    e:'re-nasc',    ok: v => v !== ''},
+  {f:'r-tel',     e:'re-tel',     ok: v => v.replace(/\D/g,'').length >= 10},
+  {f:'r-email',   e:'re-email',   ok: v => /\S+@\S+\.\S+/.test(v)},
+  {f:'r-senha',   e:'re-senha',   ok: v => v.length >= 6},
+  {f:'r-senha2',  e:'re-senha2',  ok: v => v === gv('r-senha') && v.length >= 6},
+  {f:'r-cargo',   e:'re-cargo',   ok: v => v.trim().length > 1},
+  {f:'r-emerg-nome', e:'re-emerg', ok: v => v.trim().length > 2}
+];
+
+// Campos do cadastro público que serão salvos no rascunho
+const R_DRAFT_FIELDS = ['r-nome','r-cpf','r-nasc','r-tel','r-email','r-cargo','r-adm','r-mae','r-pai','r-emerg-nome','r-emerg-tel','r-emerg-wz'];
+const R_DRAFT_SELECTS = ['r-sexo','r-estado','r-dept','r-contrato','r-emerg-par'];
+const R_DRAFT_KEY = 'dp_cadastro_rascunho';
+
+function rSaveDraft() {
+  const draft = {};
+  R_DRAFT_FIELDS.forEach(id => { const el = sel(id); if(el) draft[id] = el.value; });
+  R_DRAFT_SELECTS.forEach(id => { const el = sel(id); if(el) draft[id] = el.value; });
+  try { localStorage.setItem(R_DRAFT_KEY, JSON.stringify(draft)); } catch(e) {}
+  const badge = sel('r-draft-badge'); if(badge) badge.style.display = 'block';
+}
+
+function rLoadDraft() {
+  try {
+    const raw = localStorage.getItem(R_DRAFT_KEY);
+    if(!raw) return false;
+    const draft = JSON.parse(raw);
+    let hasData = false;
+    R_DRAFT_FIELDS.forEach(id => { if(draft[id]) { const el=sel(id); if(el) { el.value=draft[id]; hasData=true; } } });
+    R_DRAFT_SELECTS.forEach(id => { if(draft[id]) { const el=sel(id); if(el) el.value=draft[id]; } });
+    if(hasData) {
+      const badge = sel('r-draft-badge'); if(badge) badge.style.display = 'block';
+    }
+    return hasData;
+  } catch(e) { return false; }
+}
+
+function rClearDraft() {
+  try { localStorage.removeItem(R_DRAFT_KEY); } catch(e) {}
+  const badge = sel('r-draft-badge'); if(badge) badge.style.display = 'none';
+}
+
+function rPreviewFoto(input) {
+  if(!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = sel('r-av-img'); const ini_ = sel('r-av-ini');
+    if(img) { img.src = e.target.result; img.style.display = 'block'; }
+    if(ini_) ini_.style.display = 'none';
+    // Atualiza label
+    document.querySelectorAll('label[for="r-foto"]').forEach(function(l){
+      if(l.textContent.trim()==='Adicionar foto') l.textContent='Alterar foto';
+    });
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function rUpdate() {
+  const nome = gv('r-nome').trim();
+  const ini_ = sel('r-av-ini');
+  if(ini_ && ini_.style.display !== 'none') ini_.textContent = nome ? ini(nome) : '?';
+  const an = sel('r-av-name'); if(an) an.textContent = nome || 'Seu nome aqui';
+  const filled = R_REQ.filter(r => { const el=sel(r.f); return el && r.ok(el.value); }).length;
+  const pf = sel('r-prog-fill'); if(pf) pf.style.width = Math.round(filled/R_REQ.length*100)+'%';
+  const pt = sel('r-prog-txt'); if(pt) pt.textContent = 'Progresso: '+filled+' de '+R_REQ.length+' campos';
+  rSaveDraft();
+}
+
+function voltarLogin() {
+  // Verifica se há algo digitado
+  const temDados = R_DRAFT_FIELDS.some(id => { const el=sel(id); return el && el.value.trim() !== ''; });
+  if(temDados) {
+    if(!confirm('Seus dados estão salvos como rascunho e serão recuperados quando você voltar. Deseja sair?')) return;
+  }
+  show('v-login');
+}
+
+function abrirCadastro() {
+  show('v-register');
+  const hasData = rLoadDraft();
+  if(hasData) rUpdate();
+}
+
+async function doRegister() {
+  let ok = true;
+  R_REQ.forEach(r => {
+    const el = sel(r.f); const em = sel(r.e);
+    if(!r.ok(el.value)) { el.classList.add('err'); if(em) em.style.display='block'; ok=false; }
+    else { el.classList.remove('err'); if(em) em.style.display='none'; }
+  });
+  const cb = sel('r-termos');
+  if(!cb || !cb.checked) { alert('Aceite os termos para continuar.'); return; }
+  if(!ok) { showT('r-err'); return; }
+  // Pega foto se enviada
+  var fotoBase64 = '';
+  var fotoInput = sel('r-foto');
+  var fotoImg = sel('r-av-img');
+  if(fotoImg && fotoImg.src && fotoImg.src.startsWith('data:')) fotoBase64 = fotoImg.src;
+
+  emps.push({
+    id:nextId++, nome:gv('r-nome'), cargo:gv('r-cargo') || 'Aguardando aprovação',
+    cpf:gv('r-cpf'), nasc:gv('r-nasc'), tel:gv('r-tel'),
+    email:gv('r-email'), senha:(await hashSenha(gv('r-senha'))),
+    sexo:gv('r-sexo'), estado:gv('r-estado'), dept:gv('r-dept'),
+    adm:gv('r-adm'), contrato:gv('r-contrato'), empresa:gv('r-empresa'),
+    mae:gv('r-mae'), pai:gv('r-pai'),
+    en:gv('r-emerg-nome'), ep:gv('r-emerg-par'),
+    et:gv('r-emerg-tel'), ew:gv('r-emerg-wz'),
+    foto: fotoBase64,
+    av: emps.length % AV.length, status:'pendente'
+  });
+  empsSave();
+  rClearDraft();
+  const ok2 = sel('r-ok'); if(ok2) ok2.classList.add('on');
+  setTimeout(() => { show('v-login'); }, 2500);
+}
+
+// ── MENU MOBILE ────────────────────────────────────────────────────────────
+function openMobMenu() {
+  const sb = document.querySelector('.sidebar');
+  const ov = sel('mob-overlay');
+  if(sb) sb.classList.add('mob-open');
+  if(ov) ov.classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeMobMenu() {
+  const sb = document.querySelector('.sidebar');
+  const ov = sel('mob-overlay');
+  if(sb) sb.classList.remove('mob-open');
+  if(ov) ov.classList.remove('on');
+  document.body.style.overflow = '';
+}
+
+function logout() {
+  stopSessao();
+  currentUser = null;
+  try { localStorage.removeItem('dp_session'); } catch(e) {}
+  const app = document.querySelector('.app');
+  if (app) { app.classList.remove('role-admin'); app.classList.remove('role-func'); }
+  show('v-login');
+}
+
+// ── MISC ───────────────────────────────────────────────────────────────────
+function setFtab(btn) {
+  const parent = btn.closest('.ftabs'); if(!parent) return;
+  parent.querySelectorAll('.ftab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+// ── INIT ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  refreshSelects();
+  refreshEmpresaSelects();
+  checkPrazo();
+  renderScheduled();
+  renderDocsEnviados();
+
+  // Restaura sessão após F5 / recarregamento
+  try {
+    var saved = localStorage.getItem('dp_session');
+    if (saved) {
+      var u = JSON.parse(saved);
+      // Valida que o usuário ainda existe (ou é admin fixo)
+      var valid = false;
+      if (u.role === 'admin') {
+        valid = true; // admins fixos sempre válidos
+      } else {
+        valid = emps.some(function(e){ return e.id === u.id && e.status === 'ativo'; });
+      }
+      if (valid) {
+        currentUser = u;
+        afterLogin();
+        return;
+      } else {
+        localStorage.removeItem('dp_session');
+      }
+    }
+  } catch(e) {}
+
+  show('v-login');
+});
+</script>
+</body>
+</html>
