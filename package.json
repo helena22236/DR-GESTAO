@@ -1,0 +1,19 @@
+{
+  "name": "dp-gestao",
+  "version": "1.0.0",
+  "description": "DP Gestão — Sistema de gestão de pessoal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.103.2",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.3",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.20.0"
+  }
+}
