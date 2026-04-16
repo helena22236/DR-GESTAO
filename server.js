@@ -1,0 +1,457 @@
+'use strict';
+
+const { createClient } = require('@supabase/supabase-js');
+const express  = require('express');
+const path     = require('path');
+const fs       = require('fs');
+const bcrypt   = require('bcryptjs');
+const jwt      = require('jsonwebtoken');
+const multer   = require('multer');
+
+const app = express();
+const PORT       = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'dp-gestao-secret-2024-xK9mP';
+
+// ─── Supabase ─────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://kxvjrqboqyttzbedjyjz.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4dmpycWJvcXl0dHpiZWRqeWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTIwODIsImV4cCI6MjA5MTg2ODA4Mn0.rOL9l2a3tmzcrpb9tGsR74Ku7WmMT57QY7tLfN2-M1k';
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function dbGet(table, filters) {
+  let q = db.from(table).select('*');
+  if (filters) Object.entries(filters).forEach(([k, v]) => { q = q.eq(k, v); });
+  const { data, error } = await q.limit(1).single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data || null;
+}
+async function dbAll(table, filters, order) {
+  let q = db.from(table).select('*');
+  if (filters) Object.entries(filters).forEach(([k, v]) => { q = q.eq(k, v); });
+  if (order) q = q.order(order.col, { ascending: order.asc });
+  const { data, error } = await q;
+  if (error) throw error;
+  return data || [];
+}
+async function dbInsert(table, row) {
+  const { data, error } = await db.from(table).insert(row).select().single();
+  if (error) throw error;
+  return data;
+}
+async function dbUpdate(table, row, filters) {
+  let q = db.from(table).update(row);
+  Object.entries(filters).forEach(([k, v]) => { q = q.eq(k, v); });
+  const { data, error } = await q.select().single();
+  if (error) throw error;
+  return data;
+}
+async function dbDelete(table, filters) {
+  let q = db.from(table).delete();
+  Object.entries(filters).forEach(([k, v]) => { q = q.eq(k, v); });
+  const { error } = await q;
+  if (error) throw error;
+}
+async function dbCount(table) {
+  const { count, error } = await db.from(table).select('*', { count: 'exact', head: true });
+  if (error) throw error;
+  return count || 0;
+}
+async function dbUpsert(table, row, onConflict) {
+  const { error } = await db.from(table).upsert(row, { onConflict });
+  if (error) throw error;
+}
+
+// ─── Diretórios de upload ─────────────────────────────────────────────────
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const ATES_DIR    = path.join(UPLOADS_DIR, 'atestados');
+const DOCS_DIR    = path.join(UPLOADS_DIR, 'documentos');
+[UPLOADS_DIR, ATES_DIR, DOCS_DIR].forEach(d => {
+  if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+});
+
+// ─── Multer ───────────────────────────────────────────────────────────────
+function makeStorage(dest) {
+  return multer.diskStorage({
+    destination: (req, file, cb) => cb(null, dest),
+    filename: (req, file, cb) => {
+      const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+      cb(null, Date.now() + '_' + safe);
+    }
+  });
+}
+const uploadAtes = multer({ storage: makeStorage(ATES_DIR), limits: { fileSize: 20 * 1024 * 1024 } });
+const uploadDocs = multer({ storage: makeStorage(DOCS_DIR), limits: { fileSize: 20 * 1024 * 1024 } });
+
+// ─── Middleware ────────────────────────────────────────────────────────────
+app.use(express.json({ limit: '10mb' }));
+app.use('/uploads', express.static(UPLOADS_DIR));
+app.use(express.static(__dirname));
+
+// ─── Auth helpers ──────────────────────────────────────────────────────────
+function signToken(emp) {
+  return jwt.sign(
+    { id: emp.id, role: emp.role, nome: emp.nome, email: emp.email || '' },
+    JWT_SECRET, { expiresIn: '30d' }
+  );
+}
+function authMiddleware(req, res, next) {
+  const h = req.headers.authorization || '';
+  const token = h.startsWith('Bearer ') ? h.slice(7) : '';
+  if (!token) return res.status(401).json({ message: 'Não autenticado', code: 'UNAUTH' });
+  try { req.user = jwt.verify(token, JWT_SECRET); next(); }
+  catch { res.status(401).json({ message: 'Token inválido', code: 'UNAUTH' }); }
+}
+function adminOnly(req, res, next) {
+  if (req.user.role !== 'admin')
+    return res.status(403).json({ message: 'Acesso restrito' });
+  next();
+}
+function empToObj(r) {
+  if (!r) return null;
+  return {
+    id: r.id, nome: r.nome, cargo: r.cargo || '', cpf: r.cpf || '',
+    nasc: r.nasc || '', tel: r.tel || '', tel2: r.tel2 || '', email: r.email || '',
+    sexo: r.sexo || '', estado: r.estado || '', dept: r.dept || '', adm: r.adm || '',
+    contrato: r.contrato || '', empresa: r.empresa || '', mae: r.mae || '',
+    pai: r.pai || '', en: r.en || '', ep: r.ep || '', et: r.et || '', ew: r.ew || '',
+    foto: r.foto || '', role: r.role || 'funcionario', status: r.status || 'ativo',
+    av: r.av || 0
+  };
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { login, senha } = req.body || {};
+    if (!login || !senha) return res.status(400).json({ message: 'Preencha todos os campos' });
+    const lo = login.toLowerCase().trim();
+    const cpfDigits = login.replace(/\D/g, '');
+
+    let { data: emp } = await db.from('employees').select('*').ilike('email', lo).limit(1).single();
+    if (!emp && cpfDigits.length === 11) {
+      const { data: all } = await db.from('employees').select('*').neq('cpf', '');
+      emp = (all || []).find(e => e.cpf.replace(/\D/g, '') === cpfDigits) || null;
+    }
+    if (!emp) return res.status(401).json({ message: 'E-mail/CPF ou senha incorretos', code: 'WRONG' });
+    if (emp.status === 'inativo')  return res.status(403).json({ message: 'Acesso bloqueado', code: 'INATIVO' });
+    if (emp.status === 'pendente') return res.status(403).json({ message: 'Aguardando aprovação', code: 'PENDENTE' });
+
+    const ok = await bcrypt.compare(senha, emp.senha);
+    if (!ok) return res.status(401).json({ message: 'E-mail/CPF ou senha incorretos', code: 'WRONG' });
+
+    res.json({ token: signToken(emp), user: { id: emp.id, nome: emp.nome, role: emp.role, email: emp.email } });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.post('/api/auth/login-social', async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) return res.status(400).json({ message: 'E-mail necessário' });
+    const { data: emp } = await db.from('employees').select('*').ilike('email', email).limit(1).single();
+    if (!emp)                      return res.status(404).json({ message: 'Conta não encontrada', code: 'NOT_FOUND' });
+    if (emp.status === 'inativo')  return res.status(403).json({ message: 'Acesso bloqueado', code: 'INATIVO' });
+    if (emp.status === 'pendente') return res.status(403).json({ message: 'Aguardando aprovação', code: 'PENDENTE' });
+    res.json({ token: signToken(emp), user: { id: emp.id, nome: emp.nome, role: emp.role, email: emp.email } });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
+  try {
+    const emp = await dbGet('employees', { id: req.user.id });
+    if (!emp || emp.status === 'inativo')
+      return res.status(403).json({ message: 'Acesso negado', code: 'INATIVO' });
+    res.json({ user: { id: emp.id, nome: emp.nome, role: emp.role, email: emp.email } });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { nome, cpf, email, senha, nasc, tel, sexo, estado, dept, adm,
+            contrato, empresa, mae, pai, en, ep, et, ew, cargo } = req.body || {};
+    if (!nome || !cpf || !email || !senha)
+      return res.status(400).json({ message: 'Dados obrigatórios faltando' });
+    const { data: exists } = await db.from('employees').select('id')
+      .or(`email.ilike.${email},cpf.eq.${cpf}`).limit(1).single();
+    if (exists) return res.status(409).json({ message: 'E-mail ou CPF já cadastrado' });
+    const hash = await bcrypt.hash(senha, 10);
+    const count = await dbCount('employees');
+    await dbInsert('employees', {
+      nome, cargo: cargo||'', cpf, nasc: nasc||'', tel: tel||'', email, senha: hash,
+      sexo: sexo||'', estado: estado||'', dept: dept||'', adm: adm||'',
+      contrato: contrato||'', empresa: empresa||'', mae: mae||'', pai: pai||'',
+      en: en||'', ep: ep||'', et: et||'', ew: ew||'', av: count % 6,
+      status: 'pendente', role: 'funcionario'
+    });
+    res.json({ message: 'Cadastro realizado! Aguarde aprovação.' });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── EMPLOYEES ────────────────────────────────────────────────────────────
+app.get('/api/employees', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role === 'admin') {
+      const rows = await dbAll('employees', null, { col: 'id', asc: true });
+      return res.json(rows.map(empToObj));
+    }
+    const emp = await dbGet('employees', { id: req.user.id });
+    res.json(emp ? [empToObj(emp)] : []);
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.post('/api/employees', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const d = req.body || {};
+    if (!d.nome) return res.status(400).json({ message: 'Nome obrigatório' });
+    let hash = '';
+    if (d.senha && d.senha.length >= 6) hash = await bcrypt.hash(d.senha, 10);
+    const count = await dbCount('employees');
+    const row = await dbInsert('employees', {
+      nome: d.nome, cargo: d.cargo||'', cpf: d.cpf||'', nasc: d.nasc||'',
+      tel: d.tel||'', tel2: d.tel2||'', email: d.email||'', senha: hash,
+      sexo: d.sexo||'', estado: d.estado||'', dept: d.dept||'', adm: d.adm||'',
+      contrato: d.contrato||'', empresa: d.empresa||'', mae: d.mae||'', pai: d.pai||'',
+      en: d.en||'', ep: d.ep||'', et: d.et||'', ew: d.ew||'', foto: d.foto||'',
+      role: d.role||'funcionario', status: d.status||'ativo', av: count % 6
+    });
+    res.json(empToObj(row));
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.put('/api/employees/:id', authMiddleware, async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (req.user.role !== 'admin' && req.user.id !== id)
+    return res.status(403).json({ message: 'Acesso negado' });
+  try {
+    const d = req.body || {};
+    const cur = await dbGet('employees', { id });
+    if (!cur) return res.status(404).json({ message: 'Funcionário não encontrado' });
+    let hash = cur.senha;
+    if (d.senha && d.senha.length >= 6) hash = await bcrypt.hash(d.senha, 10);
+    const row = await dbUpdate('employees', {
+      nome: d.nome??cur.nome, cargo: d.cargo??cur.cargo, cpf: d.cpf??cur.cpf,
+      nasc: d.nasc??cur.nasc, tel: d.tel??cur.tel, tel2: d.tel2??cur.tel2,
+      email: d.email??cur.email, senha: hash, sexo: d.sexo??cur.sexo,
+      estado: d.estado??cur.estado, dept: d.dept??cur.dept, adm: d.adm??cur.adm,
+      contrato: d.contrato??cur.contrato, empresa: d.empresa??cur.empresa,
+      mae: d.mae??cur.mae, pai: d.pai??cur.pai, en: d.en??cur.en, ep: d.ep??cur.ep,
+      et: d.et??cur.et, ew: d.ew??cur.ew, foto: d.foto??cur.foto,
+      role: d.role??cur.role, status: d.status??cur.status
+    }, { id });
+    res.json(empToObj(row));
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.delete('/api/employees/:id', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    await dbDelete('employees', { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── ATESTADOS ────────────────────────────────────────────────────────────
+function ateToObj(r) {
+  return {
+    id: r.id, empId: r.emp_id, empNome: r.emp_nome, tipo: r.tipo,
+    dataEmissao: r.data_emissao, obs: r.obs,
+    fileBase64: r.file_url, fileName: r.file_name,
+    status: r.status, envioDate: r.envio_date
+  };
+}
+
+app.get('/api/atestados', authMiddleware, async (req, res) => {
+  try {
+    const rows = req.user.role === 'admin'
+      ? await dbAll('atestados', null, { col: 'id', asc: false })
+      : await dbAll('atestados', { emp_id: req.user.id }, { col: 'id', asc: false });
+    res.json(rows.map(ateToObj));
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.post('/api/atestados', authMiddleware, uploadAtes.single('file'), async (req, res) => {
+  try {
+    const { empId, tipo, dataEmissao, obs } = req.body || {};
+    const finalId = req.user.role === 'admin' ? parseInt(empId) : req.user.id;
+    const emp = await dbGet('employees', { id: finalId });
+    const fileUrl  = req.file ? '/uploads/atestados/' + req.file.filename : '';
+    const fileName = req.file ? req.file.originalname : '';
+    const today    = new Date().toISOString().split('T')[0];
+    const row = await dbInsert('atestados', {
+      emp_id: finalId, emp_nome: emp ? emp.nome : '—',
+      tipo: tipo||'Atestado médico', data_emissao: dataEmissao||'',
+      obs: obs||'', file_url: fileUrl, file_name: fileName,
+      status: 'pendente', envio_date: today
+    });
+    res.json(ateToObj(row));
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.put('/api/atestados/:id/status', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { status } = req.body || {};
+    if (!['aprovado','recusado','pendente'].includes(status))
+      return res.status(400).json({ message: 'Status inválido' });
+    await dbUpdate('atestados', { status }, { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── DOCUMENTOS ───────────────────────────────────────────────────────────
+function docToObj(r) {
+  return {
+    id: r.id, empId: r.emp_id, empNome: r.emp_nome, tipo: r.tipo,
+    nome: r.nome, fileBase64: r.file_url, fileName: r.file_name, data: r.data
+  };
+}
+
+app.get('/api/documentos', authMiddleware, async (req, res) => {
+  try {
+    const rows = req.user.role === 'admin'
+      ? await dbAll('documentos', null, { col: 'id', asc: false })
+      : await dbAll('documentos', { emp_id: req.user.id }, { col: 'id', asc: false });
+    res.json(rows.map(docToObj));
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.post('/api/documentos', authMiddleware, adminOnly, uploadDocs.single('file'), async (req, res) => {
+  try {
+    const { empId, tipo, nome, data } = req.body || {};
+    const emp = await dbGet('employees', { id: parseInt(empId) });
+    const fileUrl  = req.file ? '/uploads/documentos/' + req.file.filename : '';
+    const fileName = req.file ? req.file.originalname : '';
+    const today    = data || new Date().toISOString().split('T')[0];
+    const row = await dbInsert('documentos', {
+      emp_id: parseInt(empId), emp_nome: emp ? emp.nome : '—',
+      tipo: tipo||'', nome: nome||'', file_url: fileUrl, file_name: fileName, data: today
+    });
+    res.json(docToObj(row));
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── EMPRESAS ────────────────────────────────────────────────────────────
+app.get('/api/empresas', authMiddleware, async (req, res) => {
+  try {
+    const rows = await dbAll('empresas', null, { col: 'id', asc: true });
+    res.json(rows.map(r => ({ id: r.id, nome: r.nome, cnpj: r.cnpj, email: r.email, tel: r.tel, end: r.end_ })));
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.post('/api/empresas', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { nome, cnpj, email, tel, end } = req.body || {};
+    if (!nome) return res.status(400).json({ message: 'Nome obrigatório' });
+    const row = await dbInsert('empresas', { nome, cnpj: cnpj||'', email: email||'', tel: tel||'', end_: end||'' });
+    res.json({ id: row.id, nome, cnpj: cnpj||'', email: email||'', tel: tel||'', end: end||'' });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.put('/api/empresas/:id', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { nome, cnpj, email, tel, end } = req.body || {};
+    if (!nome) return res.status(400).json({ message: 'Nome obrigatório' });
+    await dbUpdate('empresas', { nome, cnpj: cnpj||'', email: email||'', tel: tel||'', end_: end||'' }, { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.delete('/api/empresas/:id', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    await dbDelete('empresas', { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── AVISOS ───────────────────────────────────────────────────────────────
+app.get('/api/avisos', authMiddleware, async (req, res) => {
+  try {
+    const rows = await dbAll('avisos', null, { col: 'id', asc: false });
+    res.json(rows.map(r => ({ id: r.id, titulo: r.titulo, msg: r.msg, data: r.data })));
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.post('/api/avisos', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { titulo, msg } = req.body || {};
+    if (!titulo) return res.status(400).json({ message: 'Título obrigatório' });
+    const data = new Date().toISOString().split('T')[0];
+    const row = await dbInsert('avisos', { titulo, msg: msg||'', data });
+    res.json({ id: row.id, titulo, msg: msg||'', data });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── COMUNICADOS ─────────────────────────────────────────────────────────
+app.get('/api/comunicados', authMiddleware, async (req, res) => {
+  try {
+    const rows = await dbAll('comunicados', null, { col: 'id', asc: false });
+    res.json(rows.map(r => ({ id: r.id, titulo: r.titulo, msg: r.msg, dest: r.dest, ch: r.ch, data: r.data })));
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.post('/api/comunicados', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { titulo, msg, dest, ch } = req.body || {};
+    if (!titulo) return res.status(400).json({ message: 'Título obrigatório' });
+    const data = new Date().toISOString().split('T')[0];
+    const row = await dbInsert('comunicados', { titulo, msg: msg||'', dest: dest||'', ch: ch||'wz', data });
+    res.json({ id: row.id, titulo, msg: msg||'', dest: dest||'', ch: ch||'wz', data });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── CONFIG ───────────────────────────────────────────────────────────────
+app.get('/api/config', authMiddleware, async (req, res) => {
+  try {
+    const rows = await dbAll('config');
+    const cfg = {};
+    rows.forEach(r => { cfg[r.key] = r.value; });
+    res.json({
+      empresa: cfg.empresa || 'Minha Empresa',
+      prazoHoras: parseInt(cfg.prazoHoras) || 48,
+      jornada: parseInt(cfg.jornada) || 44,
+      notifWZ:    cfg.notifWZ    !== 'false',
+      notifEmail: cfg.notifEmail !== 'false',
+      googleClientId: cfg.googleClientId || '',
+      appleServiceId: cfg.appleServiceId || ''
+    });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.put('/api/config', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { empresa, prazoHoras, jornada, notifWZ, notifEmail, googleClientId, appleServiceId } = req.body || {};
+    const updates = [
+      { key: 'empresa',        value: empresa        || 'Minha Empresa' },
+      { key: 'prazoHoras',     value: String(prazoHoras || 48) },
+      { key: 'jornada',        value: String(jornada    || 44) },
+      { key: 'notifWZ',        value: String(notifWZ  !== false) },
+      { key: 'notifEmail',     value: String(notifEmail !== false) },
+      { key: 'googleClientId', value: googleClientId || '' },
+      { key: 'appleServiceId', value: appleServiceId || '' }
+    ];
+    for (const u of updates) await dbUpsert('config', u, 'key');
+    res.json({ success: true });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── Foto de perfil ───────────────────────────────────────────────────────
+app.put('/api/employees/:id/foto', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (req.user.role !== 'admin' && req.user.id !== id)
+      return res.status(403).json({ message: 'Acesso negado' });
+    const { foto } = req.body || {};
+    await dbUpdate('employees', { foto: foto || '' }, { id });
+    res.json({ success: true });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── Fallback ─────────────────────────────────────────────────────────────
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+
+// ─── Start ────────────────────────────────────────────────────────────────
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n✅  DP Gestão rodando em http://localhost:${PORT}\n`);
+    console.log('   Admin:        amandabritosilva17@gmail.com  /  admin123');
+    console.log('   Funcionário:  ana.lima@empresa.com  /  ana123\n');
+  });
+}
+
+module.exports = app;
