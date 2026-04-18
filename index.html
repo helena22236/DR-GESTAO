@@ -2888,6 +2888,20 @@ function abrirCadastro() {
   if(hasData) rUpdate();
 }
 
+function validarCPF(cpf) {
+  const c = cpf.replace(/\D/g, '');
+  if (c.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(c)) return false;
+  let soma = 0;
+  for (let i = 0; i < 9; i++) soma += parseInt(c[i]) * (10 - i);
+  let r = (soma * 10) % 11; if (r === 10 || r === 11) r = 0;
+  if (r !== parseInt(c[9])) return false;
+  soma = 0;
+  for (let i = 0; i < 10; i++) soma += parseInt(c[i]) * (11 - i);
+  r = (soma * 10) % 11; if (r === 10 || r === 11) r = 0;
+  return r === parseInt(c[10]);
+}
+
 async function doRegister() {
   let ok = true;
   R_REQ.forEach(r => {
@@ -2898,6 +2912,12 @@ async function doRegister() {
   const cb = sel('r-termos');
   if(!cb || !cb.checked) { alert('Aceite os termos para continuar.'); return; }
   if(!ok) { showT('r-err'); return; }
+  const cpfVal = gv('r-cpf');
+  if (!validarCPF(cpfVal)) {
+    const el = sel('r-cpf'); if(el) el.classList.add('err');
+    alert('CPF inválido. Digite um CPF real.');
+    return;
+  }
   try {
     await api('POST', '/api/auth/register', {
       nome:gv('r-nome'), cargo:gv('r-cargo')||'', cpf:gv('r-cpf'), nasc:gv('r-nasc'),

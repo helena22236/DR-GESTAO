@@ -153,6 +153,23 @@ function empToObj(r) {
   };
 }
 
+// ─── Validação de CPF ─────────────────────────────────────────────────────
+function validarCPF(cpf) {
+  const c = cpf.replace(/\D/g, '');
+  if (c.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(c)) return false; // ex: 111.111.111-11
+  let soma = 0;
+  for (let i = 0; i < 9; i++) soma += parseInt(c[i]) * (10 - i);
+  let r = (soma * 10) % 11;
+  if (r === 10 || r === 11) r = 0;
+  if (r !== parseInt(c[9])) return false;
+  soma = 0;
+  for (let i = 0; i < 10; i++) soma += parseInt(c[i]) * (11 - i);
+  r = (soma * 10) % 11;
+  if (r === 10 || r === 11) r = 0;
+  return r === parseInt(c[10]);
+}
+
 // ─── AUTH ─────────────────────────────────────────────────────────────────
 app.post('/api/auth/login', async (req, res) => {
   try {
@@ -204,6 +221,8 @@ app.post('/api/auth/register', async (req, res) => {
             contrato, empresa, mae, pai, en, ep, et, ew, cargo } = req.body || {};
     if (!nome || !cpf || !email || !senha)
       return res.status(400).json({ message: 'Dados obrigatórios faltando' });
+    if (!validarCPF(cpf))
+      return res.status(400).json({ message: 'CPF inválido' });
     const { data: exists } = await db.from('employees').select('id')
       .or(`email.ilike.${email},cpf.eq.${cpf}`).limit(1).single();
     if (exists) return res.status(409).json({ message: 'E-mail ou CPF já cadastrado' });
