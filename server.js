@@ -61,9 +61,11 @@ async function dbUpsert(table, row, onConflict) {
 }
 
 // ─── Diretórios de upload ─────────────────────────────────────────────────
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
-const ATES_DIR    = path.join(UPLOADS_DIR, 'atestados');
-const DOCS_DIR    = path.join(UPLOADS_DIR, 'documentos');
+// No Vercel o filesystem é somente leitura — usa /tmp
+const isVercel    = !!process.env.VERCEL;
+const UPLOADS_DIR = isVercel ? '/tmp/uploads'           : path.join(__dirname, 'uploads');
+const ATES_DIR    = isVercel ? '/tmp/uploads/atestados' : path.join(__dirname, 'uploads', 'atestados');
+const DOCS_DIR    = isVercel ? '/tmp/uploads/documentos': path.join(__dirname, 'uploads', 'documentos');
 [UPLOADS_DIR, ATES_DIR, DOCS_DIR].forEach(d => {
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 });
