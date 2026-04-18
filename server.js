@@ -14,7 +14,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dp-gestao-secret-2024-xK9mP';
 
 // ─── Supabase ─────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://kxvjrqboqyttzbedjyjz.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4dmpycWJvcXl0dHpiZWRqeWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTIwODIsImV4cCI6MjA5MTg2ODA4Mn0.rOL9l2a3tmzcrpb9tGsR74Ku7WmMT57QY7tLfN2-M1k';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function dbGet(table, filters) {
