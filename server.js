@@ -3,6 +3,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const express  = require('express');
 const cors     = require('cors');
+const helmet   = require('helmet');
 const path     = require('path');
 const fs       = require('fs');
 const bcrypt   = require('bcryptjs');
@@ -83,6 +84,22 @@ function makeStorage(dest) {
 }
 const uploadAtes = multer({ storage: makeStorage(ATES_DIR), limits: { fileSize: 20 * 1024 * 1024 } });
 const uploadDocs = multer({ storage: makeStorage(DOCS_DIR), limits: { fileSize: 20 * 1024 * 1024 } });
+
+// ─── Security Headers (Helmet) ────────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc:  ["'self'", "'unsafe-inline'", "accounts.google.com", "appleid.apple.com"],
+      styleSrc:   ["'self'", "'unsafe-inline'"],
+      imgSrc:     ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'", "https://kxvjrqboqyttzbedjyjz.supabase.co", "https://accounts.google.com"],
+      frameSrc:   ["'none'"],
+      objectSrc:  ["'none'"]
+    }
+  },
+  crossOriginEmbedderPolicy: false // necessário para carregar imagens externas
+}));
 
 // ─── CORS ─────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
