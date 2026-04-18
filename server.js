@@ -2,6 +2,7 @@
 
 const { createClient } = require('@supabase/supabase-js');
 const express  = require('express');
+const cors     = require('cors');
 const path     = require('path');
 const fs       = require('fs');
 const bcrypt   = require('bcryptjs');
@@ -82,6 +83,21 @@ function makeStorage(dest) {
 }
 const uploadAtes = multer({ storage: makeStorage(ATES_DIR), limits: { fileSize: 20 * 1024 * 1024 } });
 const uploadDocs = multer({ storage: makeStorage(DOCS_DIR), limits: { fileSize: 20 * 1024 * 1024 } });
+
+// ─── CORS ─────────────────────────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'https://dr-gestao.vercel.app',
+  'https://dr-gestao-git-main-ramonmarcaambiental-4586s-projects.vercel.app',
+  'http://localhost:3000'
+];
+app.use(cors({
+  origin: (origin, cb) => {
+    // Permite requisições sem origin (ex: Postman, mobile) e origens permitidas
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error('Bloqueado pelo CORS'));
+  },
+  credentials: true
+}));
 
 // ─── Middleware ────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
