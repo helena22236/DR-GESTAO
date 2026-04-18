@@ -1,6 +1,7 @@
 'use strict';
 
 const { createClient } = require('@supabase/supabase-js');
+const { Resend }       = require('resend');
 const express  = require('express');
 const cors     = require('cors');
 const helmet   = require('helmet');
@@ -16,7 +17,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dp-gestao-secret-2024-xK9mP';
 
 // ─── Supabase ─────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://kxvjrqboqyttzbedjyjz.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
+const SUPABASE_KEY  = process.env.SUPABASE_KEY  || '';
+const resend        = new Resend(process.env.RESEND_API_KEY || '');
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function dbGet(table, filters) {
@@ -419,6 +421,38 @@ app.post('/api/avisos', authMiddleware, adminOnly, async (req, res) => {
     const row = await dbInsert('avisos', { titulo, msg: msg||'', data });
     res.json({ id: row.id, titulo, msg: msg||'', data });
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── EMAIL EM MASSA ───────────────────────────────────────────────────────
+app.post('/api/avisos/email-todos', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { assunto, mensagem } = req.body || {};
+    if (!assunto || !mensagem)
+      return res.status(400).json({ message: 'Assunto e mensagem são obrigatórios' });
+
+    const funcionarios = await dbAll('employees', { status: 'ativo' });
+    const emails = funcionarios.map(e => e.email).filter(e => e && e.includes('@'));
+
+    if (emails.length === 0)
+      return res.status(400).json({ message: 'Nenhum funcionário com e-mail cadastrado' });
+
+    const { error } = await resend.batch.send(
+      emails.map(to => ({
+        from: 'DP Gestão <onboarding@resend.dev>',
+        to,
+        subject: assunto,
+        html: `<div style="font-family:sans-serif;max-width:600px;margin:auto">
+          <h2 style="color:#1e3a5f">${assunto}</h2>
+          <p style="color:#334155;line-height:1.6">${mensagem.replace(/\n/g, '<br>')}</p>
+          <hr style="border:none;border-top:1px solid #e2e8f0;margin-top:32px">
+          <p style="color:#94a3b8;font-size:12px">DP Gestão — Sistema de Gestão de Pessoal</p>
+        </div>`
+      }))
+    );
+
+    if (error) throw error;
+    res.json({ success: true, enviados: emails.length });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro ao enviar e-mails' }); }
 });
 
 // ─── COMUNICADOS ─────────────────────────────────────────────────────────

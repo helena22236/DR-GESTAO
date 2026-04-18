@@ -592,10 +592,16 @@ select.inp{color:#94a3b8}
             <div style="font-size:17px;font-weight:500">Avisos internos</div>
             <div style="color:#64748b;font-size:12px;margin-top:2px">Comunicados publicados para os funcionários</div>
           </div>
-          <button class="btn btn-p admin-only" onclick="abrirModalAviso()" style="display:flex;align-items:center;gap:6px">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
-            Novo aviso
-          </button>
+          <div style="display:flex;gap:8px">
+            <button class="btn admin-only" onclick="abrirModalEmailMassa()" style="display:flex;align-items:center;gap:6px">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="2"/><polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2"/></svg>
+              E-mail para todos
+            </button>
+            <button class="btn btn-p admin-only" onclick="abrirModalAviso()" style="display:flex;align-items:center;gap:6px">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+              Novo aviso
+            </button>
+          </div>
         </div>
         <div class="toast t-ok" id="t-avi" style="margin-bottom:14px">Aviso publicado com sucesso!</div>
         <div id="avisos-list">
@@ -622,6 +628,28 @@ select.inp{color:#94a3b8}
             <div style="display:flex;gap:8px">
               <button class="btn" onclick="closeOverlay('ov-aviso')">Cancelar</button>
               <button class="btn btn-p" onclick="publicarAviso()">Publicar aviso</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL EMAIL EM MASSA -->
+      <div class="overlay" id="ov-email-massa" onclick="if(event.target===this)closeOverlay('ov-email-massa')">
+        <div class="modal" style="width:500px">
+          <div class="modal-head">
+            <div class="modal-title">Enviar e-mail para todos os funcionários</div>
+            <button class="modal-x" onclick="closeOverlay('ov-email-massa')">&#215;</button>
+          </div>
+          <div class="modal-body">
+            <div class="toast t-ok" id="t-email-massa" style="margin-bottom:12px">E-mails enviados com sucesso!</div>
+            <div class="toast" id="t-email-massa-err" style="margin-bottom:12px;background:#450a0a;color:#fca5a5;border:1px solid #7f1d1d">Erro ao enviar e-mails.</div>
+            <div class="field"><label class="lbl">Assunto <span class="req">*</span></label><input class="inp" id="em-assunto" placeholder="Ex: Reunião geral — sexta-feira"></div>
+            <div class="field"><label class="lbl">Mensagem <span class="req">*</span></label><textarea class="inp" id="em-msg" rows="6" style="height:auto;padding:8px;resize:none" placeholder="Escreva a mensagem que será enviada por e-mail para todos os funcionários ativos..."></textarea></div>
+          </div>
+          <div class="modal-foot" style="justify-content:flex-end">
+            <div style="display:flex;gap:8px">
+              <button class="btn" onclick="closeOverlay('ov-email-massa')">Cancelar</button>
+              <button class="btn btn-p" id="btn-enviar-email" onclick="enviarEmailMassa()">Enviar e-mail</button>
             </div>
           </div>
         </div>
@@ -2713,6 +2741,31 @@ function comsSave(){}   // no-op
 // Avisos internos
 var avisos = [];
 function avisosSave(){} // no-op
+
+function abrirModalEmailMassa() {
+  sv('em-assunto',''); sv('em-msg','');
+  sel('t-email-massa').classList.remove('on');
+  sel('t-email-massa-err').classList.remove('on');
+  sel('ov-email-massa').classList.add('on');
+}
+async function enviarEmailMassa() {
+  const assunto = gv('em-assunto').trim();
+  const mensagem = gv('em-msg').trim();
+  if (!assunto || !mensagem) { alert('Preencha o assunto e a mensagem.'); return; }
+  const btn = sel('btn-enviar-email');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    const r = await api('POST', '/api/avisos/email-todos', { assunto, mensagem });
+    sel('t-email-massa').classList.add('on');
+    sel('t-email-massa-err').classList.remove('on');
+    btn.textContent = `Enviado para ${r.enviados} funcionário(s)`;
+    setTimeout(() => { closeOverlay('ov-email-massa'); btn.disabled=false; btn.textContent='Enviar e-mail'; }, 2500);
+  } catch(e) {
+    sel('t-email-massa-err').classList.add('on');
+    sel('t-email-massa-err').textContent = 'Erro: ' + (e.message || 'Falha ao enviar');
+    btn.disabled=false; btn.textContent='Enviar e-mail';
+  }
+}
 
 function abrirModalAviso() {
   sv('avi-titulo',''); sv('avi-msg','');
