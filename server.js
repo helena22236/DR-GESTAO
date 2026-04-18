@@ -87,18 +87,8 @@ const uploadDocs = multer({ storage: makeStorage(DOCS_DIR), limits: { fileSize: 
 
 // ─── Security Headers (Helmet) ────────────────────────────────────────────
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc:  ["'self'", "'unsafe-inline'", "accounts.google.com", "appleid.apple.com"],
-      styleSrc:   ["'self'", "'unsafe-inline'"],
-      imgSrc:     ["'self'", "data:", "blob:"],
-      connectSrc: ["'self'", "https://kxvjrqboqyttzbedjyjz.supabase.co", "https://accounts.google.com"],
-      frameSrc:   ["'none'"],
-      objectSrc:  ["'none'"]
-    }
-  },
-  crossOriginEmbedderPolicy: false // necessário para carregar imagens externas
+  contentSecurityPolicy: false,     // CSP desativado — app usa inline JS/CSS extensivamente
+  crossOriginEmbedderPolicy: false
 }));
 
 // ─── CORS ─────────────────────────────────────────────────────────────────
