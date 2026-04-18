@@ -436,23 +436,30 @@ app.post('/api/avisos/email-todos', authMiddleware, adminOnly, async (req, res) 
     if (emails.length === 0)
       return res.status(400).json({ message: 'Nenhum funcionário com e-mail cadastrado' });
 
-    const { error } = await resend.batch.send(
-      emails.map(to => ({
+    const html = `<div style="font-family:sans-serif;max-width:600px;margin:auto">
+      <h2 style="color:#1e3a5f">${assunto}</h2>
+      <p style="color:#334155;line-height:1.6">${mensagem.replace(/\n/g, '<br>')}</p>
+      <hr style="border:none;border-top:1px solid #e2e8f0;margin-top:32px">
+      <p style="color:#94a3b8;font-size:12px">DP Gestão — Sistema de Gestão de Pessoal</p>
+    </div>`;
+
+    let enviados = 0;
+    for (const to of emails) {
+      const { error } = await resend.emails.send({
         from: 'DP Gestão <onboarding@resend.dev>',
         to,
         subject: assunto,
-        html: `<div style="font-family:sans-serif;max-width:600px;margin:auto">
-          <h2 style="color:#1e3a5f">${assunto}</h2>
-          <p style="color:#334155;line-height:1.6">${mensagem.replace(/\n/g, '<br>')}</p>
-          <hr style="border:none;border-top:1px solid #e2e8f0;margin-top:32px">
-          <p style="color:#94a3b8;font-size:12px">DP Gestão — Sistema de Gestão de Pessoal</p>
-        </div>`
-      }))
-    );
+        html
+      });
+      if (error) console.error('Erro ao enviar para', to, error);
+      else enviados++;
+    }
 
-    if (error) throw error;
-    res.json({ success: true, enviados: emails.length });
-  } catch (e) { console.error(e); res.status(500).json({ message: 'Erro ao enviar e-mails' }); }
+    res.json({ success: true, enviados });
+  } catch (e) {
+    console.error('Erro email-todos:', e);
+    res.status(500).json({ message: 'Erro ao enviar e-mails: ' + (e.message || JSON.stringify(e)) });
+  }
 });
 
 // ─── COMUNICADOS ─────────────────────────────────────────────────────────
