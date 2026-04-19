@@ -340,6 +340,13 @@ app.put('/api/atestados/:id/status', authMiddleware, adminOnly, async (req, res)
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
 
+app.delete('/api/atestados/:id', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    await dbDelete('atestados', { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
 // ─── FÉRIAS ───────────────────────────────────────────────────────────────
 function feriasToObj(r) {
   return {
@@ -421,6 +428,13 @@ app.post('/api/documentos', authMiddleware, adminOnly, uploadDocs.single('file')
     });
     res.json(docToObj(row));
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.delete('/api/documentos/:id', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    await dbDelete('documentos', { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
 
 // ─── EMPRESAS ────────────────────────────────────────────────────────────

@@ -1949,10 +1949,22 @@ function renderAtesAdmin() {
         + '<div class="pdf-icon" style="flex-shrink:0"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg></div>'
         + '<div style="flex:1"><div style="font-size:13px;font-weight:500">'+a.tipo+'</div><div style="font-size:11px;color:#64748b">'+a.empNome+' · '+(a.dataEmissao?fmtD(a.dataEmissao):a.envioDate)+(a.obs?' · '+a.obs:'')+'</div></div>'
         + '<span class="badge '+st.cls+'">'+st.lbl+'</span>'
+        + '<button class="btn btn-sm btn-r" onclick="excluirAtes('+a.id+')" title="Excluir" style="padding:4px 8px;font-size:11px">🗑</button>'
       + '</div>'
       + btns
     + '</div>';
   }).join('');
+}
+
+async function excluirAtes(id) {
+  if (!confirm('Excluir este atestado permanentemente?')) return;
+  try {
+    await api('DELETE', '/api/atestados/' + id);
+    atestados = atestados.filter(function(a){ return a.id !== id; });
+    renderAtesAdmin();
+    renderAtesNotif();
+    renderDash();
+  } catch(e) { alert('Erro: ' + e.message); }
 }
 
 async function atualizarAtes(id, novoStatus) {
@@ -3212,6 +3224,7 @@ function renderDocsEnviados() {
       + '<div class="pdf-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg></div>'
       + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+d.nome+'</div><div style="font-size:11px;color:#64748b">'+d.empNome+' · '+fmtD(d.data)+'</div></div>'
       + '<span class="badge b-blue" style="flex-shrink:0">'+d.tipo+'</span>'
+      + '<button class="btn btn-sm btn-r" onclick="excluirDoc('+d.id+')" title="Excluir" style="padding:4px 8px;font-size:11px;margin-left:4px">🗑</button>'
       + '</div>';
   }).join('');
   // Atualiza também o painel do dashboard
@@ -3219,6 +3232,16 @@ function renderDocsEnviados() {
   if(dRecentes) dRecentes.innerHTML = recentes.slice(0,4).map(function(d) {
     return '<div class="act-item"><div class="act-dot" style="background:#2563eb"></div><div class="act-txt">'+d.tipo+' <strong style="color:#fff">'+d.nome+'</strong> → '+d.empNome+'</div><div class="act-time">'+fmtD(d.data)+'</div></div>';
   }).join('') || '<div style="color:#64748b;font-size:12px">Nenhum documento enviado ainda.</div>';
+}
+
+async function excluirDoc(id) {
+  if (!confirm('Excluir este documento permanentemente?')) return;
+  try {
+    await api('DELETE', '/api/documentos/' + id);
+    documentos = documentos.filter(function(d){ return d.id !== id; });
+    renderDocsEnviados();
+    renderDash();
+  } catch(e) { alert('Erro: ' + e.message); }
 }
 
 function renderMeusDocs() {
