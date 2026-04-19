@@ -33,8 +33,9 @@ body{background:#0f172a;color:#fff;min-height:100vh}
 .sb-name{font-size:13px;font-weight:500;color:#fff}
 .sb-tag{font-size:10px;color:#475569}
 .sb-sec{padding:12px 12px 3px;color:#334155;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
-.si{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;margin:1px 5px;color:#64748b;font-size:12px;border:none;background:transparent;width:calc(100% - 10px);text-align:left;transition:all .15s}
-.si svg{width:15px;height:15px;fill:currentColor;flex-shrink:0}
+.si{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:7px;cursor:pointer;margin:1px 5px;color:#64748b;font-size:12px;border:none;background:transparent;width:calc(100% - 10px);text-align:left;transition:all .15s}
+.si svg{width:16px;height:16px;min-width:16px;fill:currentColor;flex-shrink:0}
+.si svg[fill="none"]{fill:none;stroke:currentColor;stroke-width:1.5}
 .si:hover{background:#1e293b;color:#94a3b8}
 .si.on{background:#1e3a6e;color:#60a5fa}
 .sb-bot{margin-top:auto;padding:10px;border-top:1px solid #1e293b}
@@ -424,7 +425,7 @@ select.inp{color:#94a3b8}
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg>Documentos
     </button>
     <button class="si" id="si-ates" onclick="navTo('p-ates','si-ates','Enviar atestado')" style="justify-content:space-between">
-      <span style="display:flex;align-items:center;gap:7px"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9S3 16.97 3 12 7.03 3 12 3s9 4.03 9 9z"/></svg>Atestado</span>
+      <span style="display:flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9S3 16.97 3 12 7.03 3 12 3s9 4.03 9 9z"/></svg>Atestado</span>
       <span id="sb-ates-badge" style="display:none;background:#b45309;color:#fef3c7;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700"></span>
     </button>
     <button class="si admin-only" id="si-avisos" onclick="navTo('p-avisos','si-avisos','Avisos')">
