@@ -1162,6 +1162,31 @@ select.inp{color:#94a3b8}
   </div>
 </div>
 
+<!-- ══ MODAL DOCS FUNCIONÁRIO ══ -->
+<div class="overlay" id="ov-emp-docs" onclick="if(event.target===this)closeOverlay('ov-emp-docs')">
+  <div class="modal" style="width:680px;max-width:98vw">
+    <div class="modal-head">
+      <div class="modal-title" id="emp-docs-title">Documentos</div>
+      <button class="modal-x" onclick="closeOverlay('ov-emp-docs')">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+        <input type="number" id="emp-docs-dia" placeholder="Dia" min="1" max="31" style="width:70px;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:13px" oninput="renderEmpDocsLista()">
+        <select id="emp-docs-mes" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:13px" onchange="renderEmpDocsLista()">
+          <option value="">Mês</option>
+          <option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option>
+          <option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option>
+          <option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option>
+          <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+        </select>
+        <input type="number" id="emp-docs-ano" placeholder="Ano" min="2000" max="2099" style="width:90px;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:7px 10px;color:#e2e8f0;font-size:13px" oninput="renderEmpDocsLista()">
+        <button class="btn btn-sm" onclick="sel('emp-docs-dia').value='';sel('emp-docs-mes').value='';sel('emp-docs-ano').value='';renderEmpDocsLista()">Limpar filtro</button>
+      </div>
+      <div id="emp-docs-lista"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL FICHA ══ -->
 <div class="overlay" id="ov-ficha" onclick="if(event.target===this)closeOverlay('ov-ficha')">
   <div class="modal" style="width:540px">
@@ -2003,7 +2028,7 @@ function renderEmps(list) {
     const togStatus = st !== 'inativo' ? 'inativo' : 'ativo';
     return '<div class="emp-row" style="opacity:'+(st==='inativo'?'.6':'1')+'">'
       + '<div class="av" style="background:'+a.bg+';color:'+a.c+'">'+ini(e.nome)+'</div>'
-      + '<div class="emp-info"><div class="emp-name">'+e.nome+'</div><div class="emp-sub">'+e.cargo+(e.dept?' · '+e.dept:'')+'</div></div>'
+      + '<div class="emp-info"><div class="emp-name" style="cursor:pointer;text-decoration:underline dotted #3b82f6" onclick="openEmpDocs('+e.id+')">'+e.nome+'</div><div class="emp-sub">'+e.cargo+(e.dept?' · '+e.dept:'')+'</div></div>'
       + '<span class="badge '+(stCls[st]||'b-green')+'">'+( stLbl[st]||'Ativo')+'</span>'
       + '<div class="btn-row">'
         + '<button class="btn btn-sm" data-id="'+e.id+'" onclick="openFicha('+e.id+')">Ficha</button>'
@@ -2460,6 +2485,77 @@ function fichaBlock(title, rows, titleColor) {
 }
 
 function closeOverlay(id) { const el = sel(id); if(el) el.classList.remove('on'); }
+
+var _empDocsId = null;
+function openEmpDocs(id) {
+  const e = emps.find(x => x.id === id); if(!e) return;
+  _empDocsId = id;
+  sel('emp-docs-title').textContent = 'Documentos — ' + e.nome;
+  sel('emp-docs-dia').value = '';
+  sel('emp-docs-mes').value = '';
+  sel('emp-docs-ano').value = '';
+  renderEmpDocsLista();
+  sel('ov-emp-docs').classList.add('on');
+}
+
+function renderEmpDocsLista() {
+  const dia = (sel('emp-docs-dia').value||'').trim();
+  const mes = sel('emp-docs-mes').value;
+  const ano = (sel('emp-docs-ano').value||'').trim();
+  const el = sel('emp-docs-lista'); if(!el) return;
+
+  function matchData(dateStr) {
+    if(!dateStr) return true;
+    const d = new Date(dateStr);
+    if(isNaN(d)) return true;
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yy = String(d.getFullYear());
+    if(dia && dd !== dia.padStart(2,'0')) return false;
+    if(mes && mm !== mes) return false;
+    if(ano && yy !== ano) return false;
+    return true;
+  }
+
+  const docs = (documentos||[]).filter(d => d.empId === _empDocsId && matchData(d.data));
+  const ates = (atestados||[]).filter(a => a.empId === _empDocsId && matchData(a.dataEmissao));
+
+  if(!docs.length && !ates.length) {
+    el.innerHTML = '<div style="color:#64748b;font-size:13px;padding:16px 0">Nenhum documento encontrado.</div>';
+    return;
+  }
+
+  let html = '';
+  if(docs.length) {
+    html += '<div style="font-size:12px;font-weight:600;color:#64748b;letter-spacing:1px;margin-bottom:8px">DOCUMENTOS / HOLERITES</div>';
+    html += docs.map(d => {
+      const data = d.data ? new Date(d.data).toLocaleDateString('pt-BR') : '—';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;background:#1e293b;border-radius:8px;padding:10px 14px;margin-bottom:6px">'
+        + '<div><div style="font-size:13px;font-weight:500;color:#e2e8f0">'+(d.nome||d.tipo||'Documento')+'</div>'
+        + '<div style="font-size:11px;color:#64748b;margin-top:2px">'+(d.tipo||'—')+' · '+data+'</div></div>'
+        + (d.fileBase64 ? '<a href="'+d.fileBase64+'" target="_blank" class="btn btn-sm">Visualizar</a>' : '<span style="font-size:11px;color:#475569">Sem arquivo</span>')
+        + '</div>';
+    }).join('');
+  }
+
+  if(ates.length) {
+    html += '<div style="font-size:12px;font-weight:600;color:#64748b;letter-spacing:1px;margin:16px 0 8px">ATESTADOS</div>';
+    const stCls = {pendente:'b-amber',aprovado:'b-green',recusado:'b-red'};
+    const stLbl = {pendente:'Pendente',aprovado:'Aprovado',recusado:'Recusado'};
+    html += ates.map(a => {
+      const data = a.dataEmissao ? new Date(a.dataEmissao).toLocaleDateString('pt-BR') : '—';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;background:#1e293b;border-radius:8px;padding:10px 14px;margin-bottom:6px">'
+        + '<div><div style="font-size:13px;font-weight:500;color:#e2e8f0">'+(a.tipo||'Atestado médico')+'</div>'
+        + '<div style="font-size:11px;color:#64748b;margin-top:2px">Emissão: '+data+(a.obs?' · '+a.obs:'')+'</div></div>'
+        + '<div style="display:flex;gap:8px;align-items:center">'
+        + '<span class="badge '+(stCls[a.status]||'b-amber')+'">'+(stLbl[a.status]||a.status)+'</span>'
+        + (a.fileBase64 ? '<a href="'+a.fileBase64+'" target="_blank" class="btn btn-sm">Visualizar</a>' : '')
+        + '</div></div>';
+    }).join('');
+  }
+
+  el.innerHTML = html;
+}
 
 // ── DOCUMENTOS ─────────────────────────────────────────────────────────────
 var docsFiltro = 'todos';
