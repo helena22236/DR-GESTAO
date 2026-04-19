@@ -2533,7 +2533,7 @@ function renderEmpDocsLista() {
       return '<div style="display:flex;align-items:center;justify-content:space-between;background:#1e293b;border-radius:8px;padding:10px 14px;margin-bottom:6px">'
         + '<div><div style="font-size:13px;font-weight:500;color:#e2e8f0">'+(d.nome||d.tipo||'Documento')+'</div>'
         + '<div style="font-size:11px;color:#64748b;margin-top:2px">'+(d.tipo||'—')+' · '+data+'</div></div>'
-        + (d.fileBase64 ? '<a href="'+d.fileBase64+'" target="_blank" class="btn btn-sm">Visualizar</a>' : '<span style="font-size:11px;color:#475569">Sem arquivo</span>')
+        + (d.fileBase64 ? '<a href="'+d.fileBase64+'" download="'+(d.nome||d.tipo||'documento')+'" class="btn btn-sm">Baixar</a>' : '<span style="font-size:11px;color:#475569">Sem arquivo</span>')
         + '</div>';
     }).join('');
   }
@@ -2549,7 +2549,7 @@ function renderEmpDocsLista() {
         + '<div style="font-size:11px;color:#64748b;margin-top:2px">Emissão: '+data+(a.obs?' · '+a.obs:'')+'</div></div>'
         + '<div style="display:flex;gap:8px;align-items:center">'
         + '<span class="badge '+(stCls[a.status]||'b-amber')+'">'+(stLbl[a.status]||a.status)+'</span>'
-        + (a.fileBase64 ? '<a href="'+a.fileBase64+'" target="_blank" class="btn btn-sm">Visualizar</a>' : '')
+        + (a.fileBase64 ? '<a href="'+a.fileBase64+'" download="'+(a.tipo||'atestado')+'" class="btn btn-sm">Baixar</a>' : '')
         + '</div></div>';
     }).join('');
   }
