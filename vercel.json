@@ -4,7 +4,7 @@
     {
       "src": "server.js",
       "use": "@vercel/node",
-      "config": { "includeFiles": ["index.html", "logo.png", "manifest.json", "icon.svg"] }
+      "config": { "includeFiles": ["index.html", "manifest.json", "icon.svg", "icon.png"] }
     }
   ],
   "routes": [{ "src": "/(.*)", "dest": "server.js" }]
