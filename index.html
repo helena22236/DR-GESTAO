@@ -1833,6 +1833,7 @@ function renderAtesNotif() {
         + '<div class="sol-sub">' + a.empNome + ' · ' + (a.dataEmissao ? fmtD(a.dataEmissao) : a.envioDate) + (a.obs ? ' · ' + a.obs : '') + '</div>'
       + '</div>'
       + '<div class="sol-btns">'
+        + (a.fileBase64 ? '<a class="btn btn-sm" href="'+a.fileBase64+'" download="'+(a.fileName||'arquivo')+'" target="_blank">Ver arquivo</a>' : '')
         + '<button class="btn btn-sm btn-g" onclick="atualizarAtesDash(' + a.id + ',\'aprovado\')">Aprovar</button>'
         + '<button class="btn btn-sm btn-r" onclick="atualizarAtesDash(' + a.id + ',\'recusado\')">Recusar</button>'
       + '</div>'
