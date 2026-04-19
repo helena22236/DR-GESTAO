@@ -174,18 +174,16 @@ select.inp{color:#94a3b8}
 .prazo-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
 /* ── LOGIN / SPLASH / REGISTER ── */
-.auth-wrap{min-height:100vh;background:radial-gradient(circle at 20% 20%,#0b1f35,#020617);display:flex;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
-.auth-wave{position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(0,150,255,0.18),transparent);border-radius:50%;filter:blur(70px);pointer-events:none}
-.auth-wave1{top:-120px;left:-120px}
-.auth-wave2{bottom:-150px;right:-100px}
-.auth-bg3b{position:absolute;font-size:280px;font-weight:900;color:rgba(255,255,255,0.03);left:5%;top:15%;transform:rotate(-10deg);pointer-events:none;user-select:none;line-height:1}
-.auth-box{background:rgba(255,255,255,0.05);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:20px;width:380px;max-width:100%;border:1px solid rgba(255,255,255,0.1);padding:32px;box-shadow:0 20px 60px rgba(0,0,0,0.6);position:relative;z-index:1}
-.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.auth-wrap{min-height:100vh;background:#020617;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
+.auth-bg-canvas{position:absolute;inset:0;z-index:0;pointer-events:none}
+.auth-bg3b{position:absolute;font-size:38vw;font-weight:900;left:-2%;top:50%;transform:translateY(-50%);pointer-events:none;user-select:none;line-height:1;z-index:0;background:linear-gradient(160deg,#1a3a6e 0%,#0e2244 40%,#091428 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:none;filter:drop-shadow(0 8px 32px rgba(30,80,180,0.25))}
+.auth-box{background:rgba(10,20,50,0.72);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-radius:22px;width:420px;max-width:100%;border:1px solid rgba(59,130,246,0.18);padding:38px 36px;box-shadow:0 24px 80px rgba(0,0,0,0.7);position:relative;z-index:2}
+.auth-logo{display:flex;align-items:center;gap:14px;margin-bottom:26px;justify-content:center}
 .auth-logo-icon{width:42px;height:42px;border-radius:12px;background:#2563eb;display:flex;align-items:center;justify-content:center}
 .auth-logo-icon svg{width:22px;height:22px;fill:#fff}
-.auth-title{font-size:20px;font-weight:600;margin-bottom:4px}
-.auth-sub{color:#9ca3af;font-size:13px;margin-bottom:22px}
-@media(max-width:480px){.auth-box{padding:24px 18px}.auth-bg3b{font-size:160px}}
+.auth-title{font-size:22px;font-weight:700;text-align:center;margin-bottom:6px}
+.auth-sub{color:#8fa0bb;font-size:13px;text-align:center;margin-bottom:26px}
+@media(max-width:520px){.auth-box{padding:26px 18px;border-radius:16px}.auth-bg3b{font-size:55vw;left:-5%}}
 .divider{display:flex;align-items:center;gap:8px;margin:16px 0;color:#334155;font-size:12px}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:#334155}
 .big-btn{width:100%;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:8px;transition:all .15s}
@@ -263,34 +261,35 @@ select.inp{color:#94a3b8}
 </head>
 <body>
 
-<!-- ══ SPLASH ══ -->
-<div id="v-splash" class="splash">
-  <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px">
-    <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 18px #3b82f6aa)">
-      <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><rect x="6" y="4" width="20" height="24" rx="3" stroke="white" stroke-width="1.8" fill="none"/><rect x="11" y="2" width="10" height="5" rx="2" fill="white"/><circle cx="14" cy="15" r="3.5" stroke="white" stroke-width="1.6" fill="none"/><line x1="8" y1="22" x2="24" y2="22" stroke="white" stroke-width="1.6"/><polyline points="18,13 20,15 24,11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-    </div>
-    <div>
-      <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:0.3px">3B Consult</div>
-      <div style="font-size:13px;color:#8fa0bb;margin-top:1px">Gestão pessoal</div>
-    </div>
-  </div>
-  <button class="big-btn big-btn-p" style="width:180px;margin-top:16px" onclick="show('v-login')">Entrar no sistema</button>
-</div>
+<!-- ══ SPLASH (oculto — login direto) ══ -->
+<div id="v-splash" style="display:none"></div>
 
 <!-- ══ LOGIN ══ -->
-<div id="v-login" style="display:none">
+<div id="v-login">
   <div class="auth-wrap">
-    <div class="auth-wave auth-wave1"></div>
-    <div class="auth-wave auth-wave2"></div>
+    <!-- Ondas SVG de fundo -->
+    <svg class="auth-bg-canvas" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="rg1" cx="20%" cy="20%" r="60%"><stop offset="0%" stop-color="#1a4a9e" stop-opacity="0.35"/><stop offset="100%" stop-color="#020617" stop-opacity="0"/></radialGradient>
+        <radialGradient id="rg2" cx="80%" cy="80%" r="60%"><stop offset="0%" stop-color="#1a4a9e" stop-opacity="0.25"/><stop offset="100%" stop-color="#020617" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="1440" height="900" fill="#020617"/>
+      <ellipse cx="200" cy="160" rx="500" ry="400" fill="url(#rg1)"/>
+      <ellipse cx="1280" cy="780" rx="500" ry="400" fill="url(#rg2)"/>
+      <path d="M-100,400 C200,200 400,600 700,350 S1100,100 1600,350" stroke="rgba(59,130,246,0.12)" stroke-width="120" fill="none" stroke-linecap="round"/>
+      <path d="M-100,600 C300,400 600,750 900,500 S1300,300 1700,550" stroke="rgba(59,130,246,0.08)" stroke-width="80" fill="none" stroke-linecap="round"/>
+      <path d="M200,900 C400,650 700,800 1000,600 S1300,400 1600,200" stroke="rgba(30,80,180,0.1)" stroke-width="100" fill="none" stroke-linecap="round"/>
+    </svg>
+    <!-- 3B 3D -->
     <div class="auth-bg3b">3B</div>
     <div class="auth-box">
       <div class="auth-logo">
-        <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 10px #3b82f6aa);flex-shrink:0">
-          <svg width="24" height="24" viewBox="0 0 32 32" fill="none"><rect x="6" y="4" width="20" height="24" rx="3" stroke="white" stroke-width="1.8" fill="none"/><rect x="11" y="2" width="10" height="5" rx="2" fill="white"/><circle cx="14" cy="15" r="3.5" stroke="white" stroke-width="1.6" fill="none"/><line x1="8" y1="22" x2="24" y2="22" stroke="white" stroke-width="1.6"/><polyline points="18,13 20,15 24,11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 4px 16px rgba(37,99,235,0.6));flex-shrink:0">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><rect x="6" y="4" width="20" height="24" rx="3" stroke="white" stroke-width="1.8" fill="none"/><rect x="11" y="2" width="10" height="5" rx="2" fill="white"/><circle cx="14" cy="15" r="3.5" stroke="white" stroke-width="1.6" fill="none"/><line x1="8" y1="22" x2="24" y2="22" stroke="white" stroke-width="1.6"/><polyline points="18,13 20,15 24,11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
         </div>
         <div>
-          <div style="font-size:16px;font-weight:700;color:#fff">3B Consult</div>
-          <div style="font-size:11px;color:#9ca3af">Gestão pessoal</div>
+          <div style="font-size:18px;font-weight:700;color:#fff;letter-spacing:0.2px">3B Consult</div>
+          <div style="font-size:12px;color:#8fa0bb">Gestão pessoal</div>
         </div>
       </div>
       <div class="auth-title">Bem-vindo de volta</div>
@@ -304,13 +303,9 @@ select.inp{color:#94a3b8}
       <div class="toast t-err" id="l-err-semsenha" style="margin-bottom:10px">Senha não definida. Solicite ao administrador definir sua senha de acesso.</div>
       <div class="toast" id="l-err-naocfg" style="margin-bottom:10px;background:#451a03;color:#fbbf24;border:1px solid #854d0e">Login social não configurado. Informe o Client ID nas configurações.</div>
       <div class="toast t-err" id="l-err-bloqueado" style="margin-bottom:10px">Muitas tentativas incorretas. Aguarde <span id="l-lock-min">5</span> minuto(s) e tente novamente.</div>
-      <button class="big-btn big-btn-p" onclick="doLogin('func')">Entrar no sistema</button>
-      <!-- Login social desativado temporariamente -->
-      <!-- <div class="divider">ou entre com</div>
-      <button class="big-btn" onclick="googleLogin()">Entrar com Google</button>
-      <button class="big-btn" onclick="appleLogin()">Entrar com Apple</button> -->
-      <div style="text-align:center;margin-top:14px;color:#64748b;font-size:12px">Novo por aqui? <span onclick="abrirCadastro()" style="color:#2563eb;cursor:pointer;font-weight:500">Criar conta</span></div>
-      <div style="text-align:center;margin-top:8px;color:#64748b;font-size:12px">Esqueceu a senha? <span style="color:#2563eb;cursor:pointer">Recuperar</span></div>
+      <button onclick="doLogin('func')" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(90deg,#2563eb,#3b82f6);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;letter-spacing:0.3px;box-shadow:0 4px 20px rgba(37,99,235,0.4);transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">Entrar no sistema</button>
+      <div style="text-align:center;margin-top:18px;color:#64748b;font-size:13px">Novo por aqui? <span onclick="abrirCadastro()" style="color:#3b82f6;cursor:pointer;font-weight:500">Criar conta</span></div>
+      <div style="text-align:center;margin-top:8px;color:#64748b;font-size:13px">Esqueceu a senha? <span style="color:#3b82f6;cursor:pointer">Recuperar</span></div>
     </div>
   </div>
 </div>
