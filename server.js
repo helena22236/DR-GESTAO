@@ -340,6 +340,55 @@ app.put('/api/atestados/:id/status', authMiddleware, adminOnly, async (req, res)
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
 
+// ─── FÉRIAS ───────────────────────────────────────────────────────────────
+function feriasToObj(r) {
+  return {
+    id: r.id, empId: r.emp_id, empNome: r.emp_nome,
+    periodoAquiIni: r.periodo_aqui_ini||'', periodoAquiFim: r.periodo_aqui_fim||'',
+    ferIni: r.ferias_ini||'', ferFim: r.ferias_fim||'',
+    dias: r.dias||30, diasVendidos: r.dias_vendidos||0,
+    status: r.status||'pendente', obs: r.obs||'', createdAt: r.created_at||''
+  };
+}
+
+app.get('/api/ferias', authMiddleware, async (req, res) => {
+  try {
+    const rows = req.user.role === 'admin'
+      ? await dbAll('ferias', null, { col: 'id', asc: false })
+      : await dbAll('ferias', { emp_id: req.user.id }, { col: 'id', asc: false });
+    res.json(rows.map(feriasToObj));
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.post('/api/ferias', authMiddleware, async (req, res) => {
+  try {
+    const { empId, periodoAquiIni, periodoAquiFim, ferIni, ferFim, dias, diasVendidos, obs } = req.body || {};
+    const finalId = req.user.role === 'admin' ? (empId || req.user.id) : req.user.id;
+    const emp = await dbGet('employees', { id: finalId });
+    const today = new Date().toISOString().split('T')[0];
+    const row = await dbInsert('ferias', {
+      emp_id: finalId, emp_nome: emp ? emp.nome : '—',
+      periodo_aqui_ini: periodoAquiIni||'', periodo_aqui_fim: periodoAquiFim||'',
+      ferias_ini: ferIni||'', ferias_fim: ferFim||'',
+      dias: dias||30, dias_vendidos: diasVendidos||0,
+      status: 'pendente', obs: obs||'', created_at: today
+    });
+    res.json(feriasToObj(row));
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.put('/api/ferias/:id/status', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { status, obs } = req.body || {};
+    const valid = ['pendente','aprovado','em_andamento','concluido','recusado'];
+    if (!valid.includes(status)) return res.status(400).json({ message: 'Status inválido' });
+    const upd = { status };
+    if (obs !== undefined) upd.obs = obs;
+    await dbUpdate('ferias', upd, { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
 // ─── DOCUMENTOS ───────────────────────────────────────────────────────────
 function docToObj(r) {
   return {
