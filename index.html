@@ -1287,6 +1287,21 @@ select.inp{color:#94a3b8}
         <label class="lbl">Funcionário</label>
         <select class="inp" id="req-ferias-func-sel"></select>
       </div>
+      <div class="field" style="margin-bottom:12px">
+        <label class="lbl">Contrato / Empresa</label>
+        <select class="inp" id="req-fer-empresa">
+          <option value="">Selecionar</option>
+          <option>UFMA ADM</option>
+          <option>UFMA INFRA</option>
+          <option>IBAMA</option>
+          <option>JFMA 05</option>
+          <option>JFMA 06</option>
+          <option>JFMA 07</option>
+          <option>JFMA 08</option>
+          <option>JFMA 39</option>
+          <option>TRT</option>
+        </select>
+      </div>
       <div class="grid2" style="margin-bottom:0">
         <div class="field">
           <label class="lbl">Início período aquisitivo</label>
@@ -2795,7 +2810,7 @@ function renderFerias() {
         }
         return '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid rgba(51,65,85,0.4);flex-wrap:wrap">'
           + '<div style="flex:1;min-width:180px">'
-            + '<div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:3px">'+f.empNome+'</div>'
+            + '<div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:3px">'+f.empNome+(f.empresa?' <span style="font-size:10px;color:#60a5fa;font-weight:400">· '+f.empresa+'</span>':'')+'</div>'
             + '<div style="font-size:11px;color:#64748b;margin-bottom:2px">Período aquisitivo: '+paqStr+'</div>'
             + '<div style="font-size:11px;color:#94a3b8">'+iniStr+' → '+fimStr+' · <strong>'+f.dias+' dias</strong>'+(f.diasVendidos?' · 💰 '+f.diasVendidos+' vendidos':'')+(f.obs?' · '+f.obs:'')+'</div>'
           + '</div>'
@@ -2853,6 +2868,7 @@ function openReqFerias() {
   var periodo = emp ? calcPeriodoAquisitivo(emp.adm) : { ini: '', fim: '' };
   var row = sel('req-ferias-func-row'); if(row) row.style.display = 'none';
   var titulo = sel('req-ferias-titulo'); if(titulo) titulo.textContent = '🏖️ Solicitar Férias';
+  var empSel = sel('req-fer-empresa'); if(empSel && emp && emp.empresa) empSel.value = emp.empresa;
   sel('req-fer-paq-ini').value = periodo.ini;
   sel('req-fer-paq-fim').value = periodo.fim;
   sel('req-fer-ini').value = '';
@@ -2877,6 +2893,8 @@ function openReqFeriasAdmin() {
       var p = emp ? calcPeriodoAquisitivo(emp.adm) : { ini:'', fim:'' };
       sel('req-fer-paq-ini').value = p.ini;
       sel('req-fer-paq-fim').value = p.fim;
+      var empSel = sel('req-fer-empresa');
+      if (empSel && emp && emp.empresa) empSel.value = emp.empresa;
     };
     selFunc.onchange();
   }
@@ -2909,6 +2927,7 @@ async function salvarSolicitacaoFerias() {
     ferFim: sel('req-fer-fim').value,
     dias: dias,
     diasVendidos: vendidos,
+    empresa: (sel('req-fer-empresa')||{}).value || '',
     obs: sel('req-fer-obs').value
   };
   if (isAdmin && empIdVal) payload.empId = empIdVal;

@@ -347,6 +347,7 @@ function feriasToObj(r) {
     periodoAquiIni: r.periodo_aqui_ini||'', periodoAquiFim: r.periodo_aqui_fim||'',
     ferIni: r.ferias_ini||'', ferFim: r.ferias_fim||'',
     dias: r.dias||30, diasVendidos: r.dias_vendidos||0,
+    empresa: r.empresa||'',
     status: r.status||'pendente', obs: r.obs||'', createdAt: r.created_at||''
   };
 }
@@ -362,7 +363,7 @@ app.get('/api/ferias', authMiddleware, async (req, res) => {
 
 app.post('/api/ferias', authMiddleware, async (req, res) => {
   try {
-    const { empId, periodoAquiIni, periodoAquiFim, ferIni, ferFim, dias, diasVendidos, obs } = req.body || {};
+    const { empId, periodoAquiIni, periodoAquiFim, ferIni, ferFim, dias, diasVendidos, empresa, obs } = req.body || {};
     const finalId = req.user.role === 'admin' ? (empId || req.user.id) : req.user.id;
     const emp = await dbGet('employees', { id: finalId });
     const today = new Date().toISOString().split('T')[0];
@@ -371,6 +372,7 @@ app.post('/api/ferias', authMiddleware, async (req, res) => {
       periodo_aqui_ini: periodoAquiIni||'', periodo_aqui_fim: periodoAquiFim||'',
       ferias_ini: ferIni||'', ferias_fim: ferFim||'',
       dias: dias||30, dias_vendidos: diasVendidos||0,
+      empresa: empresa||'',
       status: 'pendente', obs: obs||'', created_at: today
     });
     res.json(feriasToObj(row));
