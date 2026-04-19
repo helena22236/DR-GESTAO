@@ -482,7 +482,7 @@ select.inp{color:#94a3b8}
       <!-- DASHBOARD -->
       <div class="page on" id="p-dash">
         <!-- Card aniversariantes compacto -->
-        <div id="card-aniv-admin" onclick="openAnivModal()" style="display:none;cursor:pointer;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px 20px;margin-bottom:16px;align-items:center;justify-content:space-between">
+        <div id="card-aniv-admin" onclick="openAnivModal()" style="display:none;cursor:pointer;background:rgba(8,16,40,0.65);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(59,130,246,0.13);border-radius:14px;padding:18px 20px;margin-bottom:16px;align-items:center;justify-content:space-between">
           <div>
             <div style="font-size:22px;margin-bottom:8px">🎁</div>
             <div style="font-size:16px;font-weight:500;color:#e2e8f0;line-height:1.4" id="aniv-resumo-texto">—</div>
@@ -806,7 +806,7 @@ select.inp{color:#94a3b8}
           <div style="font-size:13px;color:#94a3b8;line-height:1.5" id="card-parabens-msg"></div>
         </div>
         <!-- Card aniversariantes compacto -->
-        <div id="card-aniv-func" onclick="openAnivModal()" style="display:none;cursor:pointer;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px 20px;margin-bottom:16px;align-items:center;justify-content:space-between">
+        <div id="card-aniv-func" onclick="openAnivModal()" style="display:none;cursor:pointer;background:rgba(8,16,40,0.65);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(59,130,246,0.13);border-radius:14px;padding:18px 20px;margin-bottom:16px;align-items:center;justify-content:space-between">
           <div>
             <div style="font-size:22px;margin-bottom:8px">🎁</div>
             <div style="font-size:16px;font-weight:500;color:#e2e8f0;line-height:1.4" id="aniv-resumo-texto-func">—</div>
@@ -2120,14 +2120,6 @@ function openAnivModal() {
     return !isNaN(d) && (d.getMonth()+1) === mesAtual && d.getDate() > diaAtual;
   }).sort(function(a,b){ return new Date(a.nasc).getDate() - new Date(b.nasc).getDate(); });
 
-  // Próximo mês
-  const mesSeguinte = mesAtual === 12 ? 1 : mesAtual + 1;
-  const anoSeguinte = mesAtual === 12 ? now.getFullYear() + 1 : now.getFullYear();
-  const proximoMes = emps.filter(function(e) {
-    if(!e.nasc || e.status === 'inativo') return false;
-    const d = new Date(e.nasc);
-    return !isNaN(d) && (d.getMonth()+1) === mesSeguinte;
-  }).sort(function(a,b){ return new Date(a.nasc).getDate() - new Date(b.nasc).getDate(); });
 
   function empRow(e, ano) {
     const d = new Date(e.nasc);
@@ -2152,12 +2144,6 @@ function openAnivModal() {
     html += '<div style="background:rgba(30,41,59,0.8);border-radius:10px;padding:16px;margin-bottom:16px">'
       + '<div style="font-size:15px;font-weight:700;color:#e2e8f0;margin-bottom:10px">📅 Próximos — este mês</div>'
       + proximos.map(function(e){ return empRow(e); }).join('') + '</div>';
-  }
-  if(proximoMes.length) {
-    const nomeMesSeg = new Date(anoSeguinte, mesSeguinte-1, 1).toLocaleDateString('pt-BR',{month:'long'});
-    html += '<div style="background:rgba(30,41,59,0.8);border-radius:10px;padding:16px">'
-      + '<div style="font-size:15px;font-weight:700;color:#94a3b8;margin-bottom:10px">🗓 Próximo mês — '+nomeMesSeg+'</div>'
-      + proximoMes.map(function(e){ return empRow(e, anoSeguinte); }).join('') + '</div>';
   }
   if(!html) {
     html = '<div style="color:#64748b;font-size:13px;padding:10px 0">Nenhum aniversariante encontrado.</div>';
