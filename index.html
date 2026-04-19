@@ -49,10 +49,10 @@ body{background:#0f172a;color:#fff;min-height:100vh}
 
 /* ── FORMS ── */
 .lbl{color:#94a3b8;font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;display:block}
-.inp{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:9px 11px;color:#fff;font-size:13px;outline:none;transition:border .15s}
-.inp:focus{border-color:#2563eb}
+.inp{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 11px;color:#fff;font-size:13px;outline:none;transition:border .15s}
+.inp:focus{border-color:#3b82f6;background:rgba(255,255,255,0.11)}
 .inp.err{border-color:#dc2626}
-.inp::placeholder{color:#334155}
+.inp::placeholder{color:#475569}
 select.inp{color:#94a3b8}
 .field{margin-bottom:12px}
 .err-msg{color:#f87171;font-size:11px;margin-top:3px;display:none}
@@ -174,13 +174,18 @@ select.inp{color:#94a3b8}
 .prazo-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
 /* ── LOGIN / SPLASH / REGISTER ── */
-.auth-wrap{min-height:100vh;background:#0a0f1e;display:flex;align-items:center;justify-content:center;padding:20px}
-.auth-box{background:#1e293b;border-radius:16px;width:420px;max-width:100%;border:1px solid #334155;padding:32px}
-.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px;justify-content:center}
+.auth-wrap{min-height:100vh;background:radial-gradient(circle at 20% 20%,#0b1f35,#020617);display:flex;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
+.auth-wave{position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(0,150,255,0.18),transparent);border-radius:50%;filter:blur(70px);pointer-events:none}
+.auth-wave1{top:-120px;left:-120px}
+.auth-wave2{bottom:-150px;right:-100px}
+.auth-bg3b{position:absolute;font-size:280px;font-weight:900;color:rgba(255,255,255,0.03);left:5%;top:15%;transform:rotate(-10deg);pointer-events:none;user-select:none;line-height:1}
+.auth-box{background:rgba(255,255,255,0.05);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:20px;width:380px;max-width:100%;border:1px solid rgba(255,255,255,0.1);padding:32px;box-shadow:0 20px 60px rgba(0,0,0,0.6);position:relative;z-index:1}
+.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:22px}
 .auth-logo-icon{width:42px;height:42px;border-radius:12px;background:#2563eb;display:flex;align-items:center;justify-content:center}
 .auth-logo-icon svg{width:22px;height:22px;fill:#fff}
-.auth-title{font-size:20px;font-weight:500;text-align:center;margin-bottom:4px}
-.auth-sub{color:#64748b;font-size:13px;text-align:center;margin-bottom:24px}
+.auth-title{font-size:20px;font-weight:600;margin-bottom:4px}
+.auth-sub{color:#9ca3af;font-size:13px;margin-bottom:22px}
+@media(max-width:480px){.auth-box{padding:24px 18px}.auth-bg3b{font-size:160px}}
 .divider{display:flex;align-items:center;gap:8px;margin:16px 0;color:#334155;font-size:12px}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:#334155}
 .big-btn{width:100%;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:8px;transition:all .15s}
@@ -275,16 +280,17 @@ select.inp{color:#94a3b8}
 <!-- ══ LOGIN ══ -->
 <div id="v-login" style="display:none">
   <div class="auth-wrap">
+    <div class="auth-wave auth-wave1"></div>
+    <div class="auth-wave auth-wave2"></div>
+    <div class="auth-bg3b">3B</div>
     <div class="auth-box">
       <div class="auth-logo">
-        <div style="display:flex;align-items:center;gap:14px;justify-content:center">
-          <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 14px #3b82f6aa)">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="6" y="4" width="20" height="24" rx="3" stroke="white" stroke-width="1.8" fill="none"/><rect x="11" y="2" width="10" height="5" rx="2" fill="white"/><circle cx="14" cy="15" r="3.5" stroke="white" stroke-width="1.6" fill="none"/><line x1="8" y1="22" x2="24" y2="22" stroke="white" stroke-width="1.6"/><polyline points="18,13 20,15 24,11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-          </div>
-          <div>
-            <div style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:0.3px">3B Consult</div>
-            <div style="font-size:13px;color:#8fa0bb;margin-top:1px">Gestão pessoal</div>
-          </div>
+        <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 10px #3b82f6aa);flex-shrink:0">
+          <svg width="24" height="24" viewBox="0 0 32 32" fill="none"><rect x="6" y="4" width="20" height="24" rx="3" stroke="white" stroke-width="1.8" fill="none"/><rect x="11" y="2" width="10" height="5" rx="2" fill="white"/><circle cx="14" cy="15" r="3.5" stroke="white" stroke-width="1.6" fill="none"/><line x1="8" y1="22" x2="24" y2="22" stroke="white" stroke-width="1.6"/><polyline points="18,13 20,15 24,11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#fff">3B Consult</div>
+          <div style="font-size:11px;color:#9ca3af">Gestão pessoal</div>
         </div>
       </div>
       <div class="auth-title">Bem-vindo de volta</div>
@@ -496,6 +502,14 @@ select.inp{color:#94a3b8}
 
       <!-- DASHBOARD -->
       <div class="page on" id="p-dash">
+        <!-- Card aniversariantes compacto -->
+        <div id="card-aniv-admin" onclick="openAnivModal()" style="display:none;cursor:pointer;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px 20px;margin-bottom:16px;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:22px;margin-bottom:8px">🎁</div>
+            <div style="font-size:16px;font-weight:500;color:#e2e8f0;line-height:1.4" id="aniv-resumo-texto">—</div>
+          </div>
+          <div id="aniv-avatares-admin" style="display:flex;flex-direction:column;align-items:flex-end;gap:-8px"></div>
+        </div>
         <div style="margin-bottom:16px"><div style="font-size:17px;font-weight:500">Visão geral</div><div style="color:#64748b;font-size:12px;margin-top:2px" id="d-subtitle">Resumo</div></div>
         <div class="stat-grid">
           <div class="stat"><div class="stat-n" id="d-total">—</div><div class="stat-l">Funcionários</div><div class="stat-t">cadastrados</div></div>
@@ -533,14 +547,6 @@ select.inp{color:#94a3b8}
             </div>
           </div>
           <div id="d-solicit-list"></div>
-        </div>
-        <!-- Aniversariantes -->
-        <div class="card" style="margin-top:0">
-          <div class="card-row" style="margin-bottom:10px">
-            <div class="card-title" style="margin-bottom:0">🎂 Aniversariantes</div>
-            <span id="d-aniv-mes" style="font-size:11px;color:#64748b"></span>
-          </div>
-          <div id="d-aniv-list"><div style="color:#64748b;font-size:12px">Nenhum aniversariante este mês.</div></div>
         </div>
         <div class="card" style="margin-top:0">
           <div class="card-title">Ações rápidas</div>
@@ -814,6 +820,20 @@ select.inp{color:#94a3b8}
 
       <!-- DASHBOARD FUNCIONÁRIO -->
       <div class="page" id="p-dash-func">
+        <!-- Parabéns pessoal (só aparece no aniversário) -->
+        <div id="card-parabens" style="display:none;background:linear-gradient(135deg,#1e3a6e,#1e293b);border:1px solid #3b82f6;border-radius:14px;padding:18px 20px;margin-bottom:16px;text-align:center">
+          <div style="font-size:30px;margin-bottom:6px">🎂🎉</div>
+          <div style="font-size:16px;font-weight:600;color:#60a5fa;margin-bottom:4px">Feliz Aniversário!</div>
+          <div style="font-size:13px;color:#94a3b8;line-height:1.5" id="card-parabens-msg"></div>
+        </div>
+        <!-- Card aniversariantes compacto -->
+        <div id="card-aniv-func" onclick="openAnivModal()" style="display:none;cursor:pointer;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px 20px;margin-bottom:16px;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:22px;margin-bottom:8px">🎁</div>
+            <div style="font-size:16px;font-weight:500;color:#e2e8f0;line-height:1.4" id="aniv-resumo-texto-func">—</div>
+          </div>
+          <div id="aniv-avatares-func" style="display:flex;flex-direction:column;align-items:flex-end;gap:-8px"></div>
+        </div>
         <div id="func-dash-header" style="margin-bottom:20px;display:flex;align-items:center;gap:14px">
           <div id="func-dash-av" style="width:52px;height:52px;border-radius:50%;background:#1e3a6e;display:flex;align-items:center;justify-content:center;color:#60a5fa;font-size:18px;font-weight:600;flex-shrink:0;overflow:hidden;border:2px solid #334155"></div>
           <div>
@@ -1167,6 +1187,17 @@ select.inp{color:#94a3b8}
       <button class="modal-x" onclick="closeOverlay('ov-perfil')">&#215;</button>
     </div>
     <div class="modal-body" id="perfil-body"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL ANIVERSARIANTES ══ -->
+<div class="overlay" id="ov-aniv" onclick="if(event.target===this)closeOverlay('ov-aniv')">
+  <div class="modal" style="width:520px;max-width:98vw">
+    <div class="modal-head">
+      <div class="modal-title">🎂 Aniversariantes</div>
+      <button class="modal-x" onclick="closeOverlay('ov-aniv')">&#215;</button>
+    </div>
+    <div class="modal-body" id="aniv-modal-body"></div>
   </div>
 </div>
 
@@ -1568,6 +1599,7 @@ function renderFuncDash(emp) {
   const cargoBadge = sel('func-cargo-badge'); if(cargoBadge) cargoBadge.textContent = dept;
   renderFuncUltimoHolerite();
   renderFuncDocsRecentes();
+  renderAniversariantes();
   const stBadge = sel('func-status-badge');
   if (stBadge) {
     if (status === 'ativo') {
@@ -2025,15 +2057,11 @@ function renderDash() {
 }
 
 function renderAniversariantes() {
-  const el = sel('d-aniv-list'); if(!el) return;
   const now = new Date();
   const mesAtual = now.getMonth() + 1;
   const diaAtual = now.getDate();
-  const nomeMes = now.toLocaleDateString('pt-BR', {month:'long'});
-  const mesEl = sel('d-aniv-mes');
-  if(mesEl) mesEl.textContent = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
 
-  const aniv = emps.filter(function(e) {
+  const anivMes = emps.filter(function(e) {
     if(!e.nasc || e.status === 'inativo') return false;
     const d = new Date(e.nasc);
     return !isNaN(d) && (d.getMonth() + 1) === mesAtual;
@@ -2041,25 +2069,108 @@ function renderAniversariantes() {
     return new Date(a.nasc).getDate() - new Date(b.nasc).getDate();
   });
 
-  if(!aniv.length) {
-    el.innerHTML = '<div style="color:#64748b;font-size:12px">Nenhum aniversariante em ' + nomeMes + '.</div>';
-    return;
+  // Montar texto resumo
+  const nomeMes = new Date().toLocaleDateString('pt-BR',{month:'long'});
+  function buildCard(textoId, avatId, cardId) {
+    const cardEl = sel(cardId);
+    if(!cardEl) return;
+    cardEl.style.display = 'flex';
+
+    const textoEl = sel(textoId);
+    if(!anivMes.length) {
+      if(textoEl) textoEl.textContent = 'Nenhum aniversariante em ' + nomeMes;
+      const avatEl = sel(avatId); if(avatEl) avatEl.innerHTML = '<div style="font-size:32px">🎂</div>';
+      return;
+    }
+
+    const primeiro = anivMes[0].nome.split(' ')[0];
+    const resto = anivMes.length - 1;
+    const texto = resto > 0
+      ? primeiro + ' e mais ' + resto + ' pessoa' + (resto > 1 ? 's' : '') + ' fazem aniversário esse mês'
+      : primeiro + ' faz aniversário esse mês';
+    if(textoEl) textoEl.textContent = texto;
+
+    const avatEl = sel(avatId); if(!avatEl) return;
+    avatEl.innerHTML = anivMes.slice(0,3).map(function(e) {
+      const AVC = AV[(e.av||0) % AV.length] || AV[0];
+      const foto = e.foto ? '<img src="'+e.foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">' : ini(e.nome);
+      return '<div style="width:52px;height:52px;border-radius:50%;background:'+AVC.bg+';color:'+AVC.c+';font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;border:3px solid #1e293b;overflow:hidden;margin-bottom:-12px">'+foto+'</div>';
+    }).join('');
   }
 
-  el.innerHTML = aniv.map(function(e) {
+  buildCard('aniv-resumo-texto', 'aniv-avatares-admin', 'card-aniv-admin');
+  buildCard('aniv-resumo-texto-func', 'aniv-avatares-func', 'card-aniv-func');
+
+  // Parabéns pessoal
+  if(currentUser) {
+    const empAtual = emps.find(function(e){ return e.id === currentUser.id; });
+    const nascStr = empAtual ? empAtual.nasc : null;
+    if(nascStr) {
+      const nasc = new Date(nascStr);
+      if(!isNaN(nasc) && nasc.getDate() === diaAtual && (nasc.getMonth()+1) === mesAtual) {
+        const nome = currentUser.nome ? currentUser.nome.split(' ')[0] : 'você';
+        const msgs = [
+          'A 3B Consult deseja a você, '+nome+', um dia repleto de alegria, saúde e conquistas! Que este novo ciclo seja incrível. 🎉',
+          'Parabéns, '+nome+'! Hoje é o seu dia especial. Toda a equipe da 3B Consult celebra com você! 🥳',
+          'Feliz aniversário, '+nome+'! Que você continue brilhando e crescendo conosco. Com carinho, equipe 3B Consult. 💙'
+        ];
+        const msg = msgs[Math.floor(Math.random() * msgs.length)];
+        const cardP = sel('card-parabens');
+        const msgEl = sel('card-parabens-msg');
+        if(cardP) cardP.style.display = 'block';
+        if(msgEl) msgEl.textContent = msg;
+      }
+    }
+  }
+}
+
+function openAnivModal() {
+  const now = new Date();
+  const mesAtual = now.getMonth() + 1;
+  const diaAtual = now.getDate();
+
+  const hoje = emps.filter(function(e) {
+    if(!e.nasc || e.status === 'inativo') return false;
     const d = new Date(e.nasc);
-    const dia = d.getDate();
-    const isHoje = dia === diaAtual;
-    const AVC = AV[(e.av || 0) % AV.length] || AV[0];
-    return '<div class="emp-row" style="'+(isHoje?'background:#172554;border-radius:8px;padding:6px 8px;':'')+'">'
-      + '<div class="av" style="background:'+AVC.bg+';color:'+AVC.c+'">'+ini(e.nome)+'</div>'
-      + '<div class="emp-info">'
-        + '<div class="emp-name">'+(isHoje?'🎂 ':'')+e.nome+'</div>'
-        + '<div class="emp-sub">'+e.cargo+(e.dept?' · '+e.dept:'')+'</div>'
-      + '</div>'
-      + '<span style="font-size:13px;font-weight:600;color:'+(isHoje?'#60a5fa':'#475569')+'">'+String(dia).padStart(2,'0')+'/'+String(mesAtual).padStart(2,'0')+'</span>'
+    return !isNaN(d) && d.getDate() === diaAtual && (d.getMonth()+1) === mesAtual;
+  });
+
+  const proximos = emps.filter(function(e) {
+    if(!e.nasc || e.status === 'inativo') return false;
+    const d = new Date(e.nasc);
+    return !isNaN(d) && (d.getMonth()+1) === mesAtual && d.getDate() > diaAtual;
+  }).sort(function(a,b){ return new Date(a.nasc).getDate() - new Date(b.nasc).getDate(); });
+
+  function empRow(e) {
+    const d = new Date(e.nasc);
+    const dataFmt = d.getDate() + ' de ' + d.toLocaleDateString('pt-BR',{month:'long'}) + ' de ' + (new Date().getFullYear());
+    const AVC = AV[(e.av||0) % AV.length] || AV[0];
+    const foto = e.foto ? '<img src="'+e.foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">' : ini(e.nome);
+    return '<div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid #1e293b">'
+      + '<div style="width:48px;height:48px;border-radius:50%;background:'+AVC.bg+';color:'+AVC.c+';font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">'+foto+'</div>'
+      + '<div><div style="font-size:11px;color:#64748b;margin-bottom:2px">'+dataFmt+'</div>'
+      + '<div style="font-size:14px;font-weight:600;color:#e2e8f0">'+e.nome+'</div>'
+      + '<div style="font-size:11px;color:#475569">'+(e.cargo||'—')+(e.dept?' - Depto '+e.dept:'')+'</div></div>'
       + '</div>';
-  }).join('');
+  }
+
+  let html = '';
+  if(hoje.length) {
+    html += '<div style="background:#1e293b;border-radius:10px;padding:16px;margin-bottom:16px">'
+      + '<div style="font-size:15px;font-weight:700;color:#60a5fa;margin-bottom:10px">Aniversariantes do dia</div>'
+      + hoje.map(empRow).join('') + '</div>';
+  }
+  if(proximos.length) {
+    html += '<div style="background:#1e293b;border-radius:10px;padding:16px">'
+      + '<div style="font-size:15px;font-weight:700;color:#e2e8f0;margin-bottom:10px">Próximos Aniversários</div>'
+      + proximos.map(empRow).join('') + '</div>';
+  }
+  if(!html) {
+    html = '<div style="color:#64748b;font-size:13px;padding:10px 0">Nenhum aniversariante este mês.</div>';
+  }
+
+  const body = sel('aniv-modal-body'); if(body) body.innerHTML = html;
+  sel('ov-aniv').classList.add('on');
 }
 
 function renderEmps(list) {
