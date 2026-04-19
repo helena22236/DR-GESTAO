@@ -2042,12 +2042,14 @@ function renderAniversariantes() {
   const mesAtual = now.getMonth() + 1;
   const diaAtual = now.getDate();
 
+  function nascMes(nasc) { return parseInt((nasc||'').split('-')[1]||0); }
+  function nascDia(nasc) { return parseInt((nasc||'').split('-')[2]||0); }
+
   const anivMes = emps.filter(function(e) {
     if(!e.nasc || e.status === 'inativo') return false;
-    const d = new Date(e.nasc);
-    return !isNaN(d) && (d.getMonth() + 1) === mesAtual;
+    return nascMes(e.nasc) === mesAtual;
   }).sort(function(a, b) {
-    return new Date(a.nasc).getDate() - new Date(b.nasc).getDate();
+    return nascDia(a.nasc) - nascDia(b.nasc);
   });
 
   // Montar texto resumo
@@ -2087,8 +2089,9 @@ function renderAniversariantes() {
     const empAtual = emps.find(function(e){ return e.id === currentUser.id; });
     const nascStr = empAtual ? empAtual.nasc : null;
     if(nascStr) {
-      const nasc = new Date(nascStr);
-      if(!isNaN(nasc) && nasc.getDate() === diaAtual && (nasc.getMonth()+1) === mesAtual) {
+      const nascD = parseInt((nascStr||'').split('-')[2]||0);
+      const nascM = parseInt((nascStr||'').split('-')[1]||0);
+      if(nascD === diaAtual && nascM === mesAtual) {
         const nome = currentUser.nome ? currentUser.nome.split(' ')[0] : 'você';
         const msgs = [
           'A 3B Consult deseja a você, '+nome+', um dia repleto de alegria, saúde e conquistas! Que este novo ciclo seja incrível. 🎉',
@@ -2110,22 +2113,25 @@ function openAnivModal() {
   const mesAtual = now.getMonth() + 1;
   const diaAtual = now.getDate();
 
+  function nMes(n){ return parseInt((n||'').split('-')[1]||0); }
+  function nDia(n){ return parseInt((n||'').split('-')[2]||0); }
+
   const hoje = emps.filter(function(e) {
     if(!e.nasc || e.status === 'inativo') return false;
-    const d = new Date(e.nasc);
-    return !isNaN(d) && d.getDate() === diaAtual && (d.getMonth()+1) === mesAtual;
+    return nDia(e.nasc) === diaAtual && nMes(e.nasc) === mesAtual;
   });
 
   const proximos = emps.filter(function(e) {
     if(!e.nasc || e.status === 'inativo') return false;
-    const d = new Date(e.nasc);
-    return !isNaN(d) && (d.getMonth()+1) === mesAtual && d.getDate() > diaAtual;
-  }).sort(function(a,b){ return new Date(a.nasc).getDate() - new Date(b.nasc).getDate(); });
+    return nMes(e.nasc) === mesAtual && nDia(e.nasc) > diaAtual;
+  }).sort(function(a,b){ return nDia(a.nasc) - nDia(b.nasc); });
 
 
-  function empRow(e, ano) {
-    const d = new Date(e.nasc);
-    const dataFmt = d.getDate() + ' de ' + d.toLocaleDateString('pt-BR',{month:'long'}) + ' de ' + (ano || now.getFullYear());
+  function empRow(e) {
+    const parts = (e.nasc||'').split('-');
+    const dia = parseInt(parts[2]||0);
+    const mesNome = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][parseInt(parts[1]||1)-1] || '';
+    const dataFmt = dia + ' de ' + mesNome;
     const AVC = AV[(e.av||0) % AV.length] || AV[0];
     const foto = e.foto ? '<img src="'+e.foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">' : ini(e.nome);
     return '<div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(51,65,85,0.5)">'
