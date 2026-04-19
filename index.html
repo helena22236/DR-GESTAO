@@ -762,7 +762,10 @@ select.inp{color:#94a3b8}
         <div class="toast" id="t-sessao-aviso" style="background:#451a03;color:#fbbf24;border:1px solid #854d0e;position:fixed;top:18px;right:18px;z-index:9999">Sessão expira em 5 minutos por inatividade.</div>
         <div class="toast t-ok" id="t-func">Operação realizada com sucesso!</div>
         <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-          <input class="inp" style="flex:1;min-width:160px" placeholder="Buscar por nome, CPF ou cargo..." oninput="filterEmps(this.value)">
+          <input class="inp" style="flex:1;min-width:160px" placeholder="Buscar por nome, CPF ou cargo..." id="emp-busca" oninput="applyEmpFiltros()">
+          <select class="inp" id="emp-filtro-empresa" style="flex:1;min-width:160px;max-width:220px" onchange="applyEmpFiltros()">
+            <option value="">Todos os contratos</option>
+          </select>
           <button class="btn btn-p" onclick="openCad()">+ Novo cadastro</button>
         </div>
         <div class="ftabs" id="status-tabs">
@@ -1871,7 +1874,7 @@ function navTo(pid, sid, title) {
   const sb = sel(sid); if(sb) sb.classList.add('on');
   const tb = sel('tb-title'); if(tb) tb.textContent = title;
   window.scrollTo(0,0);
-  if(pid === 'p-func') renderEmps(emps);
+  if(pid === 'p-func') { populateEmpresaFiltro(); applyEmpFiltros(); }
   if(pid === 'p-dash') renderDash();
   if(pid === 'p-ates') renderAtesAdmin();
   if(pid === 'p-config') renderConfig();
@@ -2347,22 +2350,34 @@ function renderEmps(list) {
   }).join('');
 }
 
-function filterEmps(q) {
-  let list = emps.filter(e =>
-    e.nome.toLowerCase().includes(q.toLowerCase()) ||
-    e.cpf.includes(q) ||
-    (e.cargo||'').toLowerCase().includes(q.toLowerCase())
-  );
-  if(statusFilter !== 'todos') list = list.filter(e => (e.status||'ativo') === statusFilter);
+function populateEmpresaFiltro() {
+  var sel = document.getElementById('emp-filtro-empresa');
+  if (!sel) return;
+  var empresaAtual = sel.value;
+  var nomes = [...new Set(emps.map(e => (e.empresa||'').trim()).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Todos os contratos</option>'
+    + nomes.map(n => '<option value="'+n+'"'+(n===empresaAtual?' selected':'')+'>'+n+'</option>').join('');
+}
+
+function applyEmpFiltros() {
+  var q = (document.getElementById('emp-busca')||{}).value || '';
+  var empresa = (document.getElementById('emp-filtro-empresa')||{}).value || '';
+  var list = emps.filter(function(e) {
+    var matchQ = !q || e.nome.toLowerCase().includes(q.toLowerCase()) || e.cpf.includes(q) || (e.cargo||'').toLowerCase().includes(q.toLowerCase());
+    var matchEmp = !empresa || (e.empresa||'').trim() === empresa;
+    var matchSt = statusFilter === 'todos' || (e.status||'ativo') === statusFilter;
+    return matchQ && matchEmp && matchSt;
+  });
   renderEmps(list);
 }
+
+function filterEmps(q) { applyEmpFiltros(); }
 
 function filterStatus(s, btn) {
   statusFilter = s;
   document.querySelectorAll('#status-tabs .ftab').forEach(b => b.classList.remove('on'));
   if(btn) btn.classList.add('on');
-  let list = statusFilter === 'todos' ? emps : emps.filter(e => (e.status||'ativo') === statusFilter);
-  renderEmps(list);
+  applyEmpFiltros();
 }
 
 async function toggleStatus(id, ns) {
