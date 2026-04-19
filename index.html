@@ -253,9 +253,15 @@ select.inp{color:#94a3b8}
 
 <!-- ══ SPLASH ══ -->
 <div id="v-splash" class="splash">
-  <img src="/logo.png" style="width:220px;object-fit:contain;filter:drop-shadow(0 0 18px #3b82f6aa)">
-  <div style="font-size:28px;font-weight:500">DP Gestão</div>
-  <div style="color:#64748b;font-size:14px">Sistema de gestão de pessoal</div>
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px">
+    <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 18px #3b82f6aa)">
+      <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><rect x="6" y="4" width="20" height="24" rx="3" stroke="white" stroke-width="1.8" fill="none"/><rect x="11" y="2" width="10" height="5" rx="2" fill="white"/><circle cx="14" cy="15" r="3.5" stroke="white" stroke-width="1.6" fill="none"/><line x1="8" y1="22" x2="24" y2="22" stroke="white" stroke-width="1.6"/><polyline points="18,13 20,15 24,11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    </div>
+    <div>
+      <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:0.3px">3B Consult</div>
+      <div style="font-size:13px;color:#8fa0bb;margin-top:1px">Gestão pessoal</div>
+    </div>
+  </div>
   <button class="big-btn big-btn-p" style="width:180px;margin-top:16px" onclick="show('v-login')">Entrar no sistema</button>
 </div>
 
@@ -264,7 +270,15 @@ select.inp{color:#94a3b8}
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-logo">
-        <img src="/logo.png" style="width:180px;object-fit:contain;filter:drop-shadow(0 0 14px #3b82f6aa)">
+        <div style="display:flex;align-items:center;gap:14px;justify-content:center">
+          <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 14px #3b82f6aa)">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="6" y="4" width="20" height="24" rx="3" stroke="white" stroke-width="1.8" fill="none"/><rect x="11" y="2" width="10" height="5" rx="2" fill="white"/><circle cx="14" cy="15" r="3.5" stroke="white" stroke-width="1.6" fill="none"/><line x1="8" y1="22" x2="24" y2="22" stroke="white" stroke-width="1.6"/><polyline points="18,13 20,15 24,11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          </div>
+          <div>
+            <div style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:0.3px">3B Consult</div>
+            <div style="font-size:13px;color:#8fa0bb;margin-top:1px">Gestão pessoal</div>
+          </div>
+        </div>
       </div>
       <div class="auth-title">Bem-vindo de volta</div>
       <div class="auth-sub">Entre com suas credenciais</div>
@@ -382,7 +396,15 @@ select.inp{color:#94a3b8}
   <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sb-logo">
-      <img src="/logo.png" style="width:130px;object-fit:contain;filter:drop-shadow(0 0 12px #3b82f6aa)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 10px #3b82f6aa);flex-shrink:0">
+          <svg width="22" height="22" viewBox="0 0 32 32" fill="none"><rect x="6" y="4" width="20" height="24" rx="3" stroke="white" stroke-width="1.8" fill="none"/><rect x="11" y="2" width="10" height="5" rx="2" fill="white"/><circle cx="14" cy="15" r="3.5" stroke="white" stroke-width="1.6" fill="none"/><line x1="8" y1="22" x2="24" y2="22" stroke="white" stroke-width="1.6"/><polyline points="18,13 20,15 24,11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#ffffff;letter-spacing:0.2px">3B Consult</div>
+          <div style="font-size:10px;color:#8fa0bb">Gestão pessoal</div>
+        </div>
+      </div>
     </div>
     <!-- Usuário logado — topo da sidebar -->
     <div class="sb-user-top" id="sb-user-top" onclick="openPerfil()" style="cursor:pointer" title="Ver perfil">
