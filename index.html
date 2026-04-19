@@ -534,6 +534,14 @@ select.inp{color:#94a3b8}
           </div>
           <div id="d-solicit-list"></div>
         </div>
+        <!-- Aniversariantes -->
+        <div class="card" style="margin-top:0">
+          <div class="card-row" style="margin-bottom:10px">
+            <div class="card-title" style="margin-bottom:0">🎂 Aniversariantes</div>
+            <span id="d-aniv-mes" style="font-size:11px;color:#64748b"></span>
+          </div>
+          <div id="d-aniv-list"><div style="color:#64748b;font-size:12px">Nenhum aniversariante este mês.</div></div>
+        </div>
         <div class="card" style="margin-top:0">
           <div class="card-title">Ações rápidas</div>
           <div class="btn-row">
@@ -2013,6 +2021,45 @@ function renderDash() {
   }).join('');
   renderSolicit();
   renderDocsEnviados();
+  renderAniversariantes();
+}
+
+function renderAniversariantes() {
+  const el = sel('d-aniv-list'); if(!el) return;
+  const now = new Date();
+  const mesAtual = now.getMonth() + 1;
+  const diaAtual = now.getDate();
+  const nomeMes = now.toLocaleDateString('pt-BR', {month:'long'});
+  const mesEl = sel('d-aniv-mes');
+  if(mesEl) mesEl.textContent = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
+
+  const aniv = emps.filter(function(e) {
+    if(!e.nasc || e.status === 'inativo') return false;
+    const d = new Date(e.nasc);
+    return !isNaN(d) && (d.getMonth() + 1) === mesAtual;
+  }).sort(function(a, b) {
+    return new Date(a.nasc).getDate() - new Date(b.nasc).getDate();
+  });
+
+  if(!aniv.length) {
+    el.innerHTML = '<div style="color:#64748b;font-size:12px">Nenhum aniversariante em ' + nomeMes + '.</div>';
+    return;
+  }
+
+  el.innerHTML = aniv.map(function(e) {
+    const d = new Date(e.nasc);
+    const dia = d.getDate();
+    const isHoje = dia === diaAtual;
+    const AVC = AV[(e.av || 0) % AV.length] || AV[0];
+    return '<div class="emp-row" style="'+(isHoje?'background:#172554;border-radius:8px;padding:6px 8px;':'')+'">'
+      + '<div class="av" style="background:'+AVC.bg+';color:'+AVC.c+'">'+ini(e.nome)+'</div>'
+      + '<div class="emp-info">'
+        + '<div class="emp-name">'+(isHoje?'🎂 ':'')+e.nome+'</div>'
+        + '<div class="emp-sub">'+e.cargo+(e.dept?' · '+e.dept:'')+'</div>'
+      + '</div>'
+      + '<span style="font-size:13px;font-weight:600;color:'+(isHoje?'#60a5fa':'#475569')+'">'+String(dia).padStart(2,'0')+'/'+String(mesAtual).padStart(2,'0')+'</span>'
+      + '</div>';
+  }).join('');
 }
 
 function renderEmps(list) {
