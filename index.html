@@ -259,7 +259,25 @@ select.inp option:checked{background:#2563eb;color:#fff}
   .sidebar.mob-open{transform:translateX(0)}
   .mob-btn{display:flex;align-items:center;justify-content:center}
   .topbar input{width:120px}
+  .role-func .content{padding-bottom:76px}
 }
+
+/* ── BOTTOM NAV (mobile, func only) ── */
+.bottom-nav{display:none}
+@media(max-width:700px){
+  .role-func .bottom-nav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:150;
+    background:rgba(4,8,24,0.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-top:1px solid rgba(59,130,246,0.18);
+    padding:6px 0 env(safe-area-inset-bottom,6px);
+    justify-content:space-around;align-items:center;
+  }
+}
+.bn-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:6px 14px;color:#64748b;transition:color .15s;flex:1}
+.bn-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.bn-btn span{font-size:10px;font-weight:500;letter-spacing:.02em}
+.bn-btn.on{color:#60a5fa}
+.bn-btn.on svg{stroke:#60a5fa}
 </style>
 </head>
 <body>
@@ -494,6 +512,30 @@ select.inp option:checked{background:#2563eb;color:#fff}
 
   <!-- Overlay escuro para fechar menu mobile -->
   <div class="mob-overlay" id="mob-overlay" onclick="closeMobMenu()"></div>
+
+  <!-- BOTTOM NAV (mobile, só funcionário) -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="bn-btn" id="bn-inicio" onclick="bnNav('p-dash-func','si-dash-func','Início','bn-inicio')">
+      <svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg>
+      <span>Início</span>
+    </button>
+    <button class="bn-btn" id="bn-ates" onclick="bnNav('p-ates-func','si-ates-func','Meus Atestados','bn-ates')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span>Atestado</span>
+    </button>
+    <button class="bn-btn" id="bn-ferias" onclick="bnNav('p-ferias','si-ferias','Férias','bn-ferias')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <span>Férias</span>
+    </button>
+    <button class="bn-btn" id="bn-docs" onclick="bnNav('p-docs','si-docs','Documentos','bn-docs')">
+      <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+      <span>Documentos</span>
+    </button>
+    <button class="bn-btn" id="bn-perfil" onclick="bnNav('p-perfil-func','si-perfil-func','Meu perfil','bn-perfil')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+      <span>Perfil</span>
+    </button>
+  </nav>
 
   <!-- MAIN -->
   <div class="main">
@@ -2029,6 +2071,13 @@ function navTo(pid, sid, title) {
   renderFerias();
   if(pid === 'p-ates') renderMeusAtestados();
   closeMobMenu();
+  // Sincroniza bottom nav
+  var bnMap = {'p-dash-func':'bn-inicio','p-ates-func':'bn-ates','p-ferias':'bn-ferias','p-docs':'bn-docs','p-perfil-func':'bn-perfil'};
+  document.querySelectorAll('.bn-btn').forEach(function(b){ b.classList.remove('on'); });
+  var bnId = bnMap[pid]; if(bnId){ var bn=sel(bnId); if(bn) bn.classList.add('on'); }
+}
+function bnNav(pid, sid, title, bnId) {
+  navTo(pid, sid, title);
 }
 
 // ── ATESTADOS ──────────────────────────────────────────────────────────────
