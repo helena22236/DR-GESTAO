@@ -255,7 +255,7 @@ select.inp option:checked{background:#2563eb;color:#fff}
 .func-status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:20px;font-size:13px;font-weight:500}
 .ates-status{display:flex;align-items:center;gap:6px;padding:9px 13px;border-radius:8px;font-size:13px;margin-bottom:8px}
 @media(max-width:700px){
-  .sidebar{position:fixed;top:0;left:0;height:calc(100vh - 62px);overflow-y:auto;z-index:201;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.5)}
+  .sidebar{position:fixed;top:0;left:0;bottom:62px;height:auto;overflow-y:auto;z-index:201;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.5)}
   .sidebar.mob-open{transform:translateX(0)}
   .mob-btn{display:flex;align-items:center;justify-content:center}
   .topbar input{width:120px}
@@ -490,13 +490,11 @@ select.inp option:checked{background:#2563eb;color:#fff}
     <button class="si admin-only" id="si-com" onclick="navTo('p-com','si-com','Comunicados Admin')">
       <span class="si-inner"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"/></svg><span>Comunicados</span></span>
     </button>
-    <button class="si admin-only" id="si-lixeira" onclick="navTo('p-lixeira','si-lixeira','Lixeira')" style="justify-content:space-between">
-      <span class="si-inner"><svg viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Lixeira</span></span>
-      <span id="sb-lixeira-badge" style="display:none;background:#991b1b;color:#fca5a5;border-radius:20px;padding:2px 8px;font-size:12px;font-weight:700"></span>
+    <button class="si admin-only" id="si-lixeira" onclick="navTo('p-lixeira','si-lixeira','Lixeira')">
+      <span class="si-inner"><svg viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Lixeira</span><span id="sb-lixeira-badge" style="display:none;background:#991b1b;color:#fca5a5;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:6px"></span></span>
     </button>
-    <button class="si admin-only" id="si-recuperacao" onclick="navTo('p-recuperacao','si-recuperacao','Recuperação de Senha')" style="justify-content:space-between">
-      <span class="si-inner"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg><span>Recuperar Senha</span></span>
-      <span id="sb-recup-badge" style="display:none;background:#b45309;color:#fef3c7;border-radius:20px;padding:2px 8px;font-size:12px;font-weight:700"></span>
+    <button class="si admin-only" id="si-recuperacao" onclick="navTo('p-recuperacao','si-recuperacao','Recuperação de Senha')">
+      <span class="si-inner"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg><span>Recuperar Senha</span><span id="sb-recup-badge" style="display:none;background:#b45309;color:#fef3c7;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:6px"></span></span>
     </button>
     <button class="si admin-only" id="si-config" onclick="navTo('p-config','si-config','Configurações')">
       <span class="si-inner"><svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.5"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.5"/></svg><span>Configurações</span></span>
@@ -1894,6 +1892,18 @@ function setupRoleUI(isAdmin, emp) {
   if (isAdmin) {
     app.classList.add('role-admin');
     app.classList.remove('role-func');
+    // Redireciona botões do rodapé para páginas do admin
+    var bnMap = [
+      ['bn-inicio',  'p-dash',    'si-dash',    'Dashboard'],
+      ['bn-ates',    'p-ates',    'si-ates',    'Atestados'],
+      ['bn-ferias',  'p-ferias',  'si-ferias',  'Férias'],
+      ['bn-docs',    'p-docs',    'si-docs',    'Documentos'],
+      ['bn-perfil',  'p-config',  'si-config',  'Configurações']
+    ];
+    bnMap.forEach(function(item) {
+      var btn = document.getElementById(item[0]);
+      if (btn) btn.onclick = function() { navTo(item[1], item[2], item[3]); };
+    });
   } else {
     app.classList.add('role-func');
     app.classList.remove('role-admin');
