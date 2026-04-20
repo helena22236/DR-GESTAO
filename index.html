@@ -273,9 +273,9 @@ select.inp option:checked{background:#2563eb;color:#fff}
     justify-content:space-around;align-items:center;
   }
 }
-.bn-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:6px 14px;color:#64748b;transition:color .15s;flex:1}
-.bn-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.bn-btn span{font-size:10px;font-weight:500;letter-spacing:.02em}
+.bn-btn{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;padding:3px 10px;color:#64748b;transition:color .15s;flex:1}
+.bn-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.bn-btn span{font-size:9px;font-weight:500;letter-spacing:.02em}
 .bn-btn.on{color:#60a5fa}
 .bn-btn.on svg{stroke:#60a5fa}
 </style>
@@ -1517,7 +1517,7 @@ select.inp option:checked{background:#2563eb;color:#fff}
 </div>
 
 <!-- ══ BOTTOM NAV (mobile, só funcionário) ══ -->
-<nav id="bottom-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:999;background:#0a0f1e;border-top:1px solid rgba(59,130,246,0.25);padding:8px 0 12px;justify-content:space-around;align-items:center">
+<nav id="bottom-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:999;background:#0a0f1e;border-top:1px solid rgba(59,130,246,0.25);padding:4px 0 8px;justify-content:space-around;align-items:center">
   <button class="bn-btn" id="bn-inicio" onclick="bnNav('p-dash-func','si-dash-func','Início','bn-inicio')">
     <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg>
     <span>Início</span>
@@ -1885,18 +1885,17 @@ function afterLogin() {
 function setupRoleUI(isAdmin, emp) {
   const app = document.querySelector('.app');
   if (!app) return;
+  // Mostra bottom nav para todos
+  var bn = document.getElementById('bottom-nav');
+  if (bn) bn.style.display = 'flex';
+  var content = document.querySelector('.content');
+  if (content) content.style.paddingBottom = '68px';
   if (isAdmin) {
     app.classList.add('role-admin');
     app.classList.remove('role-func');
   } else {
     app.classList.add('role-func');
     app.classList.remove('role-admin');
-    // Mostra bottom nav para funcionários
-    var bn = document.getElementById('bottom-nav');
-    if (bn) bn.style.display = 'flex';
-    // Adiciona padding-bottom para não esconder conteúdo atrás do nav
-    var content = document.querySelector('.content');
-    if (content) content.style.paddingBottom = '80px';
     // Preenche dashboard do funcionário
     renderFuncDash(emp);
     // Preenche página de perfil
@@ -2083,6 +2082,14 @@ function navTo(pid, sid, title) {
   var bnId = bnMap[pid]; if(bnId){ var bn=sel(bnId); if(bn) bn.classList.add('on'); }
 }
 function bnNav(pid, sid, title, bnId) {
+  if (currentUser && currentUser.role === 'admin') {
+    var map = {
+      'p-dash-func': ['p-dash', 'si-dash'],
+      'p-ates-func': ['p-ates', 'si-ates'],
+      'p-perfil-func': ['p-config', 'si-config']
+    };
+    if (map[pid]) { pid = map[pid][0]; sid = map[pid][1] || sid; }
+  }
   navTo(pid, sid, title);
 }
 
