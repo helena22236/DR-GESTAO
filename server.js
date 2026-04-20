@@ -1,7 +1,7 @@
 'use strict';
 
 const { createClient } = require('@supabase/supabase-js');
-const { Resend }       = require('resend');
+const nodemailer = require('nodemailer');
 const express  = require('express');
 const cors     = require('cors');
 const helmet   = require('helmet');
@@ -18,8 +18,28 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dp-gestao-secret-2024-xK9mP';
 // ─── Supabase ─────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://kxvjrqboqyttzbedjyjz.supabase.co';
 const SUPABASE_KEY  = process.env.SUPABASE_KEY  || '';
-const resend        = new Resend(process.env.RESEND_API_KEY || '');
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const mailer = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER || '3bgestao@gmail.com',
+    pass: process.env.GMAIL_PASS || ''
+  }
+});
+
+async function enviarEmail(to, subject, html) {
+  try {
+    await mailer.sendMail({
+      from: '"3B Gestão" <3bgestao@gmail.com>',
+      to, subject, html
+    });
+    return true;
+  } catch(e) {
+    console.error('Erro ao enviar email para', to, e.message);
+    return false;
+  }
+}
 
 async function dbGet(table, filters) {
   let q = db.from(table).select('*');
@@ -584,6 +604,22 @@ app.post('/api/comunicados', authMiddleware, adminOnly, async (req, res) => {
     if (!titulo) return res.status(400).json({ message: 'Título obrigatório' });
     const data = new Date().toISOString().split('T')[0];
     const row = await dbInsert('comunicados', { titulo, msg: msg||'', dest: dest||'', ch: ch||'wz', data });
+
+    // Dispara email para funcionários ativos se canal for email ou ambos
+    if (ch === 'email' || ch === 'ambos') {
+      const funcionarios = await dbAll('employees', { status: 'ativo' });
+      const emails = funcionarios.map(e => e.email).filter(e => e && e.includes('@'));
+      const html = `<div style="font-family:sans-serif;max-width:600px;margin:auto;background:#f8fafc;padding:32px;border-radius:12px">
+        <div style="background:#1e3a6e;padding:20px 24px;border-radius:8px;margin-bottom:24px">
+          <h2 style="color:#fff;margin:0;font-size:18px">📢 ${titulo}</h2>
+        </div>
+        <p style="color:#334155;line-height:1.7;font-size:15px">${(msg||'').replace(/\n/g,'<br>')}</p>
+        <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">
+        <p style="color:#94a3b8;font-size:12px">3B Gestão — Sistema de Gestão de Pessoal</p>
+      </div>`;
+      for (const to of emails) await enviarEmail(to, titulo, html);
+    }
+
     res.json({ id: row.id, titulo, msg: msg||'', dest: dest||'', ch: ch||'wz', data });
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
