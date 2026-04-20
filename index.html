@@ -1546,6 +1546,17 @@ select.inp option:checked{background:#2563eb;color:#fff}
   </button>
 </nav>
 
+<!-- ══ MODAL NOTIF RECUSA ATESTADO (funcionário) ══ -->
+<div class="overlay" id="ov-notif-recusa" onclick="if(event.target===this)fecharNotifRecusa()">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head" style="background:#7f1d1d"><span>❌ Atestado Recusado</span><button class="modal-x" onclick="fecharNotifRecusa()">✕</button></div>
+    <div class="modal-body" id="notif-recusa-body"></div>
+    <div class="modal-foot" style="justify-content:flex-end">
+      <button class="btn btn-p" onclick="fecharNotifRecusa()">Entendido</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL RECUSAR ATESTADO ══ -->
 <div class="overlay" id="ov-recusar-ates" onclick="if(event.target===this)closeOverlay('ov-recusar-ates')">
   <div class="modal" style="max-width:420px">
@@ -1902,6 +1913,7 @@ function afterLogin() {
   } else {
     navTo('p-dash-func','si-dash-func','Início');
     verificarSenhaTemp();
+    setTimeout(verificarNotifRecusa, 1000);
   }
 }
 
@@ -4284,6 +4296,39 @@ async function verificarSenhaTemp() {
     var banner = sel('banner-senha-temp');
     if (banner) banner.style.display = res.temAprovada ? 'flex' : 'none';
   } catch(e) {}
+}
+
+var _notifRecusaIds = [];
+async function verificarNotifRecusa() {
+  try {
+    var recusados = atestados.filter(function(a){
+      return a.empId === currentUser.id && a.status === 'recusado' && !a.notifLida && a.motivoRecusa;
+    });
+    if (!recusados.length) return;
+    _notifRecusaIds = recusados.map(function(a){ return a.id; });
+    var body = sel('notif-recusa-body');
+    if (body) {
+      body.innerHTML = '<p style="color:#94a3b8;font-size:13px;margin-bottom:12px">O(s) seguinte(s) atestado(s) foram recusados:</p>'
+        + recusados.map(function(a){
+          return '<div style="background:#450a0a;border-left:3px solid #ef4444;padding:10px 12px;border-radius:6px;margin-bottom:8px">'
+            + '<div style="font-size:13px;font-weight:600;color:#fca5a5">' + a.tipo + '</div>'
+            + '<div style="font-size:12px;color:#fda4af;margin-top:4px">Motivo: ' + a.motivoRecusa + '</div>'
+          + '</div>';
+        }).join('');
+    }
+    sel('ov-notif-recusa').classList.add('on');
+  } catch(e) {}
+}
+
+async function fecharNotifRecusa() {
+  closeOverlay('ov-notif-recusa');
+  for (var i = 0; i < _notifRecusaIds.length; i++) {
+    try {
+      await api('PUT', '/api/atestados/' + _notifRecusaIds[i] + '/notif-lida', {});
+      var a = atestados.find(function(x){ return x.id === _notifRecusaIds[i]; });
+      if (a) a.notifLida = true;
+    } catch(e) {}
+  }
 }
 function abrirEditarPerfil() {
   if (!currentUser) return;

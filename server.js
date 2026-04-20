@@ -356,10 +356,41 @@ app.put('/api/atestados/:id/status', authMiddleware, adminOnly, async (req, res)
     if (!['aprovado','recusado','pendente'].includes(status))
       return res.status(400).json({ message: 'Status inválido' });
     const upd = { status };
-    if (status === 'recusado') upd.motivo_recusa = motivo_recusa || '';
+    if (status === 'recusado') { upd.motivo_recusa = motivo_recusa || ''; upd.notif_lida = false; }
     await dbUpdate('atestados', upd, { id: parseInt(req.params.id) });
+
+    // Envia email de notificação ao funcionário se recusado
+    if (status === 'recusado') {
+      const ates = await dbGet('atestados', { id: parseInt(req.params.id) });
+      if (ates && ates.emp_id) {
+        const emp = await dbGet('employees', { id: ates.emp_id });
+        if (emp && emp.email && emp.email.includes('@')) {
+          const html = `<div style="font-family:sans-serif;max-width:600px;margin:auto;background:#f8fafc;padding:32px;border-radius:12px">
+            <div style="background:#7f1d1d;padding:20px 24px;border-radius:8px;margin-bottom:24px">
+              <h2 style="color:#fff;margin:0;font-size:18px">❌ Atestado Recusado</h2>
+            </div>
+            <p style="color:#334155;font-size:15px">Olá, <strong>${emp.nome}</strong>.</p>
+            <p style="color:#334155;font-size:15px">Seu atestado do tipo <strong>${ates.tipo}</strong> foi recusado.</p>
+            <div style="background:#fee2e2;border-left:4px solid #ef4444;padding:12px 16px;border-radius:6px;margin:20px 0">
+              <p style="color:#991b1b;margin:0;font-size:14px"><strong>Motivo:</strong> ${motivo_recusa}</p>
+            </div>
+            <p style="color:#64748b;font-size:13px">Acesse o sistema para mais detalhes ou envie um novo atestado.</p>
+            <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">
+            <p style="color:#94a3b8;font-size:12px">3B Gestão — Sistema de Gestão de Pessoal</p>
+          </div>`;
+          await enviarEmail(emp.email, 'Atestado recusado — ' + ates.tipo, html);
+        }
+      }
+    }
     res.json({ success: true });
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.put('/api/atestados/:id/notif-lida', authMiddleware, async (req, res) => {
+  try {
+    await dbUpdate('atestados', { notif_lida: true }, { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ message: 'Erro interno' }); }
 });
 
 app.delete('/api/atestados/:id', authMiddleware, adminOnly, async (req, res) => {
