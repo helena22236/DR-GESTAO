@@ -698,7 +698,10 @@ app.post('/api/recuperar-senha', async (req, res) => {
   try {
     const { cpf, nasc } = req.body || {};
     if (!cpf || !nasc) return res.status(400).json({ message: 'CPF e data de nascimento são obrigatórios' });
-    const emp = await dbGet('employees', { cpf: cpf.trim() });
+    // Normaliza: compara só os dígitos para ignorar formatação (com ou sem máscara)
+    const cpfDigits = cpf.replace(/\D/g, '');
+    const todos = await dbAll('employees');
+    const emp = todos.find(e => e.cpf && e.cpf.replace(/\D/g, '') === cpfDigits);
     if (!emp || emp.nasc !== nasc.trim()) return res.status(404).json({ message: 'Funcionário não encontrado. Verifique o CPF e data de nascimento.' });
     if (emp.status !== 'ativo') return res.status(403).json({ message: 'Conta inativa. Contate o administrador.' });
     const created_at = new Date().toISOString();
