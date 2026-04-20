@@ -233,7 +233,7 @@ app.post('/api/auth/register', async (req, res) => {
     if (!validarCPF(cpf))
       return res.status(400).json({ message: 'CPF inválido' });
     const { data: exists } = await db.from('employees').select('id')
-      .or(`email.ilike.${email},cpf.eq.${cpf}`).limit(1).single();
+      .or(`email.ilike.${email},cpf.eq.${cpf}`).limit(1).maybeSingle();
     if (exists) return res.status(409).json({ message: 'E-mail ou CPF já cadastrado' });
     const hash = await bcrypt.hash(senha, 10);
     const count = await dbCount('employees');
