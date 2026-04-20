@@ -1546,6 +1546,23 @@ select.inp option:checked{background:#2563eb;color:#fff}
   </button>
 </nav>
 
+<!-- ══ MODAL RECUSAR ATESTADO ══ -->
+<div class="overlay" id="ov-recusar-ates" onclick="if(event.target===this)closeOverlay('ov-recusar-ates')">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head"><span>Recusar Atestado</span><button class="modal-x" onclick="closeOverlay('ov-recusar-ates')">✕</button></div>
+    <div class="modal-body">
+      <p style="color:#94a3b8;font-size:13px;margin-bottom:12px">Informe o motivo da recusa. Será exibido para o funcionário.</p>
+      <div class="field"><label class="lbl">Motivo da recusa *</label>
+        <textarea id="motivo-recusa-txt" class="inp" rows="3" placeholder="Ex: Documento ilegível, fora do prazo, assinatura do médico ausente..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot" style="justify-content:flex-end;gap:8px">
+      <button class="btn" onclick="closeOverlay('ov-recusar-ates')">Cancelar</button>
+      <button class="btn btn-r" onclick="confirmarRecusaAtes()">Confirmar Recusa</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL FICHA ══ -->
 <div class="overlay" id="ov-ficha" onclick="if(event.target===this)closeOverlay('ov-ficha')">
   <div class="modal" style="width:540px">
@@ -2183,7 +2200,28 @@ async function excluirAtes(id) {
   } catch(e) { alert('Erro: ' + e.message); }
 }
 
+var _atesRecusarId = null;
+
+function abrirRecusarAtes(id) {
+  _atesRecusarId = id;
+  var txt = sel('motivo-recusa-txt'); if(txt) txt.value = '';
+  sel('ov-recusar-ates').classList.add('on');
+}
+
+async function confirmarRecusaAtes() {
+  var motivo = (sel('motivo-recusa-txt').value || '').trim();
+  if (!motivo) { alert('Informe o motivo da recusa.'); return; }
+  closeOverlay('ov-recusar-ates');
+  try {
+    await api('PUT', '/api/atestados/' + _atesRecusarId + '/status', { status: 'recusado', motivo_recusa: motivo });
+    var a = atestados.find(function(x){ return x.id === _atesRecusarId; });
+    if(a) { a.status = 'recusado'; a.motivoRecusa = motivo; }
+    renderAtesAdmin(); renderAtesNotif(); renderDash();
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
 async function atualizarAtes(id, novoStatus) {
+  if (novoStatus === 'recusado') { abrirRecusarAtes(id); return; }
   try {
     await api('PUT', '/api/atestados/' + id + '/status', { status: novoStatus });
     var a = atestados.find(function(x){ return x.id === id; }); if(a) a.status = novoStatus;
@@ -2232,7 +2270,7 @@ function renderAtesNotif() {
       + '<div class="sol-btns">'
         + (a.fileBase64 ? '<a class="btn btn-sm" href="'+a.fileBase64+'" download="'+(a.fileName||'arquivo')+'" target="_blank">Ver arquivo</a>' : '')
         + '<button class="btn btn-sm btn-g" onclick="atualizarAtesDash(' + a.id + ',\'aprovado\')">Aprovar</button>'
-        + '<button class="btn btn-sm btn-r" onclick="atualizarAtesDash(' + a.id + ',\'recusado\')">Recusar</button>'
+        + '<button class="btn btn-sm btn-r" onclick="abrirRecusarAtes(' + a.id + ')">Recusar</button>'
       + '</div>'
     + '</div>';
   }).join('');
@@ -2263,12 +2301,18 @@ function renderMeusAtestados() {
   };
   list.innerHTML = meus.slice(0, 5).map(function(a) {
     var st = stMap[a.status] || stMap.pendente;
-    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #0f172a">'
-      + '<div style="flex:1;min-width:0">'
-        + '<div style="font-size:12px;font-weight:500">' + a.tipo + '</div>'
-        + '<div style="font-size:11px;color:#64748b">' + (a.dataEmissao ? fmtD(a.dataEmissao) : a.envioDate) + (a.obs ? ' · ' + a.obs : '') + '</div>'
+    var motivoHtml = (a.status === 'recusado' && a.motivoRecusa)
+      ? '<div style="margin-top:5px;padding:6px 10px;background:#450a0a;border-left:3px solid #ef4444;border-radius:4px;font-size:11px;color:#fca5a5">Motivo: ' + a.motivoRecusa + '</div>'
+      : '';
+    return '<div style="padding:8px 0;border-bottom:1px solid #0f172a">'
+      + '<div style="display:flex;align-items:center;gap:10px">'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:12px;font-weight:500">' + a.tipo + '</div>'
+          + '<div style="font-size:11px;color:#64748b">' + (a.dataEmissao ? fmtD(a.dataEmissao) : a.envioDate) + (a.obs ? ' · ' + a.obs : '') + '</div>'
+        + '</div>'
+        + '<span class="badge ' + st.cls + '">' + st.icon + ' ' + st.lbl + '</span>'
       + '</div>'
-      + '<span class="badge ' + st.cls + '">' + st.icon + ' ' + st.lbl + '</span>'
+      + motivoHtml
     + '</div>';
   }).join('');
 }

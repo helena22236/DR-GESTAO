@@ -352,10 +352,12 @@ app.post('/api/atestados', authMiddleware, uploadAtes.single('file'), async (req
 
 app.put('/api/atestados/:id/status', authMiddleware, adminOnly, async (req, res) => {
   try {
-    const { status } = req.body || {};
+    const { status, motivo_recusa } = req.body || {};
     if (!['aprovado','recusado','pendente'].includes(status))
       return res.status(400).json({ message: 'Status inválido' });
-    await dbUpdate('atestados', { status }, { id: parseInt(req.params.id) });
+    const upd = { status };
+    if (status === 'recusado') upd.motivo_recusa = motivo_recusa || '';
+    await dbUpdate('atestados', upd, { id: parseInt(req.params.id) });
     res.json({ success: true });
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
