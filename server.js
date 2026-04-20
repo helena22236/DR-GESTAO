@@ -354,7 +354,7 @@ function feriasToObj(r) {
     periodoAquiIni: r.periodo_aqui_ini||'', periodoAquiFim: r.periodo_aqui_fim||'',
     ferIni: r.ferias_ini||'', ferFim: r.ferias_fim||'',
     dias: r.dias||30, diasVendidos: r.dias_vendidos||0,
-    empresa: r.empresa||'',
+    empresa: r.empresa||'', visto: !!r.visto,
     status: r.status||'pendente', obs: r.obs||'', createdAt: r.created_at||''
   };
 }
@@ -383,6 +383,18 @@ app.post('/api/ferias', authMiddleware, async (req, res) => {
       status: 'pendente', obs: obs||'', created_at: today
     });
     res.json(feriasToObj(row));
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.put('/api/ferias/:id/visto', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const row = await dbGet('ferias', { id });
+    if (!row) return res.status(404).json({ message: 'Não encontrado' });
+    if (req.user.role !== 'admin' && row.emp_id !== req.user.id)
+      return res.status(403).json({ message: 'Sem permissão' });
+    await dbUpdate('ferias', { visto: true }, { id });
+    res.json({ success: true });
   } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
 

@@ -658,24 +658,12 @@ select.inp{color:#94a3b8}
           </div>
           <!-- Card saldo -->
           <div class="card" style="margin-bottom:16px">
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
-              <div>
-                <div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:4px">Período Aquisitivo Atual</div>
-                <div id="func-fer-periodo-full" style="font-size:12px;color:#64748b">—</div>
-              </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+              <div style="font-size:13px;font-weight:600;color:#e2e8f0">Saldo disponível</div>
               <div style="text-align:right">
                 <div style="font-size:28px;font-weight:700;color:#4ade80" id="func-fer-saldo-big">30</div>
-                <div style="font-size:11px;color:#64748b">dias disponíveis</div>
+                <div style="font-size:11px;color:#64748b">dias</div>
               </div>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn btn-p" style="flex:1;min-width:140px;justify-content:center" onclick="openReqFerias()">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="margin-right:6px"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                Solicitar férias
-              </button>
-              <button class="btn" style="flex:1;min-width:140px;justify-content:center" onclick="openReqVendaDias()">
-                💰 Vender dias (abono)
-              </button>
             </div>
           </div>
           <!-- Histórico -->
@@ -926,15 +914,13 @@ select.inp{color:#94a3b8}
               </div>
               <div id="func-ferias-info" style="margin-bottom:10px">
                 <div style="display:flex;flex-direction:column;gap:6px">
-                  <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#64748b">Período aquisitivo:</span><span id="func-ferias-periodo" style="color:#e2e8f0">—</span></div>
                   <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#64748b">Saldo de dias:</span><span id="func-ferias-saldo" style="color:#4ade80;font-weight:600">30 dias</span></div>
                   <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#64748b">Início das férias:</span><span id="func-ferias-ini" style="color:#e2e8f0">—</span></div>
                   <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#64748b">Término:</span><span id="func-ferias-fim" style="color:#e2e8f0">—</span></div>
                 </div>
               </div>
-              <button class="btn btn-p" style="width:100%;justify-content:center;gap:6px" onclick="openReqFerias()">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                Solicitar férias
+              <button class="btn" id="btn-marcar-visto" style="width:100%;justify-content:center;gap:6px;display:none" onclick="marcarFeriasVisto()">
+                ✅ Marcar como visto
               </button>
             </div>
             <!-- Ações rápidas -->
@@ -2765,16 +2751,41 @@ function renderFeriasFuncCard() {
   var badge = sel('func-ferias-status-badge');
   var ini = sel('func-ferias-ini');
   var fim = sel('func-ferias-fim');
+  var btnVisto = sel('btn-marcar-visto');
   if (ultima) {
     var st = stFer[ultima.status] || stFer.pendente;
     if (badge) { badge.textContent = st.lbl; badge.className = 'badge ' + st.cls; if (st.style) badge.setAttribute('style', 'font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;'+st.style); }
     if (ini) ini.textContent = ultima.ferIni ? fmtD(ultima.ferIni) : '—';
     if (fim) fim.textContent = ultima.ferFim ? fmtD(ultima.ferFim) : '—';
+    if (btnVisto) {
+      if (ultima.visto) {
+        btnVisto.style.display = 'flex';
+        btnVisto.textContent = '✅ Visto confirmado';
+        btnVisto.disabled = true;
+        btnVisto.style.opacity = '0.5';
+      } else {
+        btnVisto.style.display = 'flex';
+        btnVisto.textContent = '✅ Marcar como visto';
+        btnVisto.disabled = false;
+        btnVisto.style.opacity = '1';
+        btnVisto.onclick = function(){ marcarFeriasVisto(ultima.id); };
+      }
+    }
   } else {
-    if (badge) { badge.textContent = 'Sem solicitação'; badge.setAttribute('style','font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:#1e293b;color:#64748b'); }
+    if (badge) { badge.textContent = 'Sem registro'; badge.setAttribute('style','font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:#1e293b;color:#64748b'); }
     if (ini) ini.textContent = '—';
     if (fim) fim.textContent = '—';
+    if (btnVisto) btnVisto.style.display = 'none';
   }
+}
+
+async function marcarFeriasVisto(id) {
+  try {
+    await api('PUT', '/api/ferias/' + id + '/visto');
+    var f = ferias.find(function(x){ return x.id === id; });
+    if (f) f.visto = true;
+    renderFerias();
+  } catch(e) { alert('Erro: ' + e.message); }
 }
 
 function renderFerias() {
@@ -2813,7 +2824,7 @@ function renderFerias() {
         }
         return '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid rgba(51,65,85,0.4);flex-wrap:wrap">'
           + '<div style="flex:1;min-width:180px">'
-            + '<div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:3px">'+f.empNome+(f.empresa?' <span style="font-size:10px;color:#60a5fa;font-weight:400">· '+f.empresa+'</span>':'')+'</div>'
+            + '<div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:3px">'+f.empNome+(f.empresa?' <span style="font-size:10px;color:#60a5fa;font-weight:400">· '+f.empresa+'</span>':'')+(f.visto?' <span style="font-size:10px;color:#4ade80">✅ Visto pelo funcionário</span>':'')+'</div>'
             + '<div style="font-size:11px;color:#64748b;margin-bottom:2px">Período aquisitivo: '+paqStr+'</div>'
             + '<div style="font-size:11px;color:#94a3b8">'+iniStr+' → '+fimStr+' · <strong>'+f.dias+' dias</strong>'+(f.diasVendidos?' · 💰 '+f.diasVendidos+' vendidos':'')+(f.obs?' · '+f.obs:'')+'</div>'
           + '</div>'
