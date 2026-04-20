@@ -285,7 +285,10 @@ app.put('/api/employees/:id', authMiddleware, async (req, res) => {
 
 app.delete('/api/employees/:id', authMiddleware, adminOnly, async (req, res) => {
   try {
-    await dbDelete('employees', { id: parseInt(req.params.id) });
+    const id = parseInt(req.params.id);
+    const row = await dbGet('employees', { id });
+    if (row) await moverParaLixeira('funcionario', row, req.user.nome || req.user.email || '');
+    await dbDelete('employees', { id });
     res.json({ success: true });
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
@@ -339,7 +342,10 @@ app.put('/api/atestados/:id/status', authMiddleware, adminOnly, async (req, res)
 
 app.delete('/api/atestados/:id', authMiddleware, adminOnly, async (req, res) => {
   try {
-    await dbDelete('atestados', { id: parseInt(req.params.id) });
+    const id = parseInt(req.params.id);
+    const row = await dbGet('atestados', { id });
+    if (row) await moverParaLixeira('atestado', row, req.user.nome || req.user.email || '');
+    await dbDelete('atestados', { id });
     res.json({ success: true });
   } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
@@ -385,7 +391,10 @@ app.post('/api/ferias', authMiddleware, async (req, res) => {
 
 app.delete('/api/ferias/:id', authMiddleware, adminOnly, async (req, res) => {
   try {
-    await dbDelete('ferias', { id: parseInt(req.params.id) });
+    const id = parseInt(req.params.id);
+    const row = await dbGet('ferias', { id });
+    if (row) await moverParaLixeira('ferias', row, req.user.nome || req.user.email || '');
+    await dbDelete('ferias', { id });
     res.json({ success: true });
   } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
@@ -460,7 +469,10 @@ app.post('/api/documentos', authMiddleware, adminOnly, uploadDocs.single('file')
 
 app.delete('/api/documentos/:id', authMiddleware, adminOnly, async (req, res) => {
   try {
-    await dbDelete('documentos', { id: parseInt(req.params.id) });
+    const id = parseInt(req.params.id);
+    const row = await dbGet('documentos', { id });
+    if (row) await moverParaLixeira('documento', row, req.user.nome || req.user.email || '');
+    await dbDelete('documentos', { id });
     res.json({ success: true });
   } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
@@ -493,7 +505,10 @@ app.put('/api/empresas/:id', authMiddleware, adminOnly, async (req, res) => {
 
 app.delete('/api/empresas/:id', authMiddleware, adminOnly, async (req, res) => {
   try {
-    await dbDelete('empresas', { id: parseInt(req.params.id) });
+    const id = parseInt(req.params.id);
+    const row = await dbGet('empresas', { id });
+    if (row) await moverParaLixeira('empresa', row, req.user.nome || req.user.email || '');
+    await dbDelete('empresas', { id });
     res.json({ success: true });
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
@@ -618,6 +633,102 @@ app.put('/api/employees/:id/foto', authMiddleware, async (req, res) => {
     await dbUpdate('employees', { foto: foto || '' }, { id });
     res.json({ success: true });
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── LIXEIRA ─────────────────────────────────────────────────────────────
+async function moverParaLixeira(tipo, dados, excluidoPor) {
+  const excluido_em = new Date().toISOString();
+  await dbInsert('lixeira', { tipo, dados: JSON.stringify(dados), excluido_por: excluidoPor, excluido_em });
+}
+
+app.get('/api/lixeira', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const rows = await dbAll('lixeira', null, { col: 'id', asc: false });
+    res.json(rows.map(r => ({
+      id: r.id, tipo: r.tipo,
+      dados: typeof r.dados === 'string' ? JSON.parse(r.dados) : r.dados,
+      excluidoPor: r.excluido_por, excluidoEm: r.excluido_em
+    })));
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.post('/api/lixeira/:id/restaurar', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const item = await dbGet('lixeira', { id: parseInt(req.params.id) });
+    if (!item) return res.status(404).json({ message: 'Item não encontrado' });
+    const dados = typeof item.dados === 'string' ? JSON.parse(item.dados) : item.dados;
+    const tabelaMap = { atestado: 'atestados', documento: 'documentos', ferias: 'ferias', funcionario: 'employees', empresa: 'empresas' };
+    const tabela = tabelaMap[item.tipo];
+    if (!tabela) return res.status(400).json({ message: 'Tipo inválido' });
+    const { id: _origId, ...rest } = dados;
+    await dbInsert(tabela, rest);
+    await dbDelete('lixeira', { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.delete('/api/lixeira/:id', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    await dbDelete('lixeira', { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── RECUPERAÇÃO DE SENHA ─────────────────────────────────────────────────
+app.post('/api/recuperar-senha', async (req, res) => {
+  try {
+    const { cpf, nasc } = req.body || {};
+    if (!cpf || !nasc) return res.status(400).json({ message: 'CPF e data de nascimento são obrigatórios' });
+    const emp = await dbGet('employees', { cpf: cpf.trim() });
+    if (!emp || emp.nasc !== nasc.trim()) return res.status(404).json({ message: 'Funcionário não encontrado. Verifique o CPF e data de nascimento.' });
+    if (emp.status !== 'ativo') return res.status(403).json({ message: 'Conta inativa. Contate o administrador.' });
+    const created_at = new Date().toISOString();
+    await dbInsert('recuperacao_senha', { emp_id: emp.id, emp_nome: emp.nome, cpf: cpf.trim(), status: 'pendente', created_at });
+    res.json({ success: true, nome: emp.nome });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.get('/api/recuperacao', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const rows = await dbAll('recuperacao_senha', null, { col: 'id', asc: false });
+    res.json(rows.map(r => ({ id: r.id, empId: r.emp_id, empNome: r.emp_nome, cpf: r.cpf, status: r.status, createdAt: r.created_at })));
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.get('/api/recuperacao/minha', authMiddleware, async (req, res) => {
+  try {
+    const rows = await dbAll('recuperacao_senha', { emp_id: req.user.id });
+    const aprovada = rows.find(r => r.status === 'aprovado');
+    res.json({ temAprovada: !!aprovada });
+  } catch(e) { res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.put('/api/recuperacao/:id/aprovar', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const rec = await dbGet('recuperacao_senha', { id: parseInt(req.params.id) });
+    if (!rec) return res.status(404).json({ message: 'Solicitação não encontrada' });
+    const hash = await bcrypt.hash('123456', 10);
+    await dbUpdate('employees', { senha: hash }, { id: rec.emp_id });
+    await dbUpdate('recuperacao_senha', { status: 'aprovado' }, { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.put('/api/recuperacao/:id/recusar', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    await dbUpdate('recuperacao_senha', { status: 'recusado' }, { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.put('/api/recuperacao/concluir', authMiddleware, async (req, res) => {
+  try {
+    const rows = await dbAll('recuperacao_senha', { emp_id: req.user.id });
+    for (const r of rows.filter(x => x.status === 'aprovado')) {
+      await dbUpdate('recuperacao_senha', { status: 'concluido' }, { id: r.id });
+    }
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ message: 'Erro interno' }); }
 });
 
 // ─── Fallback ─────────────────────────────────────────────────────────────

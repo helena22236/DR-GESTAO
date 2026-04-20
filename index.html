@@ -293,7 +293,21 @@ select.inp option:checked{background:#2563eb;color:#fff}
       <div class="toast t-err" id="l-err-bloqueado" style="margin-bottom:10px">Muitas tentativas incorretas. Aguarde <span id="l-lock-min">5</span> minuto(s) e tente novamente.</div>
       <button onclick="doLogin('func')" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(90deg,#2563eb,#3b82f6);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;letter-spacing:0.3px;box-shadow:0 4px 20px rgba(37,99,235,0.4);transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">Entrar no sistema</button>
       <div style="text-align:center;margin-top:18px;color:#94a3b8;font-size:14px">Novo por aqui? <span onclick="abrirCadastro()" style="color:#3b82f6;cursor:pointer;font-weight:500">Criar conta</span></div>
-      <div style="text-align:center;margin-top:8px;color:#94a3b8;font-size:14px">Esqueceu a senha? <span style="color:#3b82f6;cursor:pointer">Recuperar</span></div>
+      <div style="text-align:center;margin-top:8px;color:#94a3b8;font-size:14px">Esqueceu a senha? <span onclick="abrirRecuperar()" style="color:#3b82f6;cursor:pointer;font-weight:500">Recuperar</span></div>
+
+      <!-- Formulário de recuperação (oculto por padrão) -->
+      <div id="recup-form" style="display:none;margin-top:16px;border-top:1px solid #1e293b;padding-top:16px">
+        <div style="font-size:14px;font-weight:500;margin-bottom:12px;color:#e2e8f0">Solicitar redefinição de senha</div>
+        <div style="color:#94a3b8;font-size:13px;margin-bottom:12px">Informe seu CPF e data de nascimento. O administrador vai analisar sua solicitação e, se aprovada, sua senha será redefinida para <strong style="color:#fff">123456</strong>.</div>
+        <div class="field"><label class="lbl">CPF</label><input class="inp" id="recup-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)"></div>
+        <div class="field"><label class="lbl">Data de nascimento</label><input class="inp" id="recup-nasc" type="date"></div>
+        <div class="toast t-ok" id="recup-ok" style="margin-bottom:10px;display:none">Solicitação enviada! Aguarde o administrador aprovar.</div>
+        <div class="toast t-err" id="recup-err" style="margin-bottom:10px;display:none">Dados não encontrados. Verifique CPF e data de nascimento.</div>
+        <div style="display:flex;gap:8px">
+          <button onclick="fecharRecuperar()" class="btn" style="flex:1">Cancelar</button>
+          <button onclick="enviarRecuperacao()" class="btn btn-p" style="flex:1">Enviar solicitação</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -456,6 +470,14 @@ select.inp option:checked{background:#2563eb;color:#fff}
     </button>
     <button class="si admin-only" id="si-com" onclick="navTo('p-com','si-com','Comunicados Admin')">
       <span class="si-inner"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"/></svg><span>Comunicados</span></span>
+    </button>
+    <button class="si admin-only" id="si-lixeira" onclick="navTo('p-lixeira','si-lixeira','Lixeira')" style="justify-content:space-between">
+      <span class="si-inner"><svg viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Lixeira</span></span>
+      <span id="sb-lixeira-badge" style="display:none;background:#991b1b;color:#fca5a5;border-radius:20px;padding:2px 8px;font-size:12px;font-weight:700"></span>
+    </button>
+    <button class="si admin-only" id="si-recuperacao" onclick="navTo('p-recuperacao','si-recuperacao','Recuperação de Senha')" style="justify-content:space-between">
+      <span class="si-inner"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg><span>Recuperar Senha</span></span>
+      <span id="sb-recup-badge" style="display:none;background:#b45309;color:#fef3c7;border-radius:20px;padding:2px 8px;font-size:12px;font-weight:700"></span>
     </button>
     <button class="si admin-only" id="si-config" onclick="navTo('p-config','si-config','Configurações')">
       <span class="si-inner"><svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.5"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.5"/></svg><span>Configurações</span></span>
@@ -639,10 +661,10 @@ select.inp option:checked{background:#2563eb;color:#fff}
             <button class="btn btn-p" onclick="openReqFeriasAdmin()">+ Nova solicitação</button>
           </div>
           <div class="grid4" style="margin-bottom:20px">
-            <div class="stat"><div class="stat-n" id="fer-stat-pend">0</div><div class="stat-l">Pendentes</div><div class="stat-t" style="color:#fbbf24">aguardando</div></div>
-            <div class="stat"><div class="stat-n" id="fer-stat-aprov">0</div><div class="stat-l">Aprovadas</div><div class="stat-t">aprovado</div></div>
-            <div class="stat"><div class="stat-n" id="fer-stat-and">0</div><div class="stat-l">Em andamento</div><div class="stat-t" style="color:#60a5fa">em curso</div></div>
-            <div class="stat"><div class="stat-n" id="fer-stat-conc">0</div><div class="stat-l">Concluídas</div><div class="stat-t">finalizadas</div></div>
+            <div class="stat" style="cursor:pointer" onclick="openFeriasDetalhe('pendente','Férias Pendentes')"><div class="stat-n" id="fer-stat-pend">0</div><div class="stat-l">Pendentes</div><div class="stat-t" style="color:#fbbf24">aguardando</div><div style="margin-top:8px"><button class="btn btn-sm" style="font-size:11px;width:100%">Ver detalhes</button></div></div>
+            <div class="stat" style="cursor:pointer" onclick="openFeriasDetalhe('aprovado','Férias Aprovadas')"><div class="stat-n" id="fer-stat-aprov">0</div><div class="stat-l">Aprovadas</div><div class="stat-t">aprovado</div><div style="margin-top:8px"><button class="btn btn-sm" style="font-size:11px;width:100%">Ver detalhes</button></div></div>
+            <div class="stat" style="cursor:pointer" onclick="openFeriasDetalhe('em_andamento','Férias em Andamento')"><div class="stat-n" id="fer-stat-and">0</div><div class="stat-l">Em andamento</div><div class="stat-t" style="color:#60a5fa">em curso</div><div style="margin-top:8px"><button class="btn btn-sm" style="font-size:11px;width:100%">Ver detalhes</button></div></div>
+            <div class="stat" style="cursor:pointer" onclick="openFeriasDetalhe('concluido','Férias Concluídas')"><div class="stat-n" id="fer-stat-conc">0</div><div class="stat-l">Concluídas</div><div class="stat-t">finalizadas</div><div style="margin-top:8px"><button class="btn btn-sm" style="font-size:11px;width:100%">Ver detalhes</button></div></div>
           </div>
           <div class="card" style="margin-bottom:0">
             <div class="card-row" style="margin-bottom:14px">
@@ -883,6 +905,15 @@ select.inp option:checked{background:#2563eb;color:#fff}
 
       <!-- DASHBOARD FUNCIONÁRIO -->
       <div class="page" id="p-dash-func">
+        <!-- Banner: senha temporária precisa ser trocada -->
+        <div id="banner-senha-temp" style="display:none;background:linear-gradient(135deg,#451a03,#1e293b);border:1px solid #f59e0b;border-radius:12px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="font-size:22px">🔑</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#fbbf24">Troque sua senha!</div>
+            <div style="font-size:13px;color:#fcd34d;margin-top:2px">Sua senha foi redefinida para <strong>123456</strong>. Por segurança, crie uma nova senha agora.</div>
+          </div>
+          <button onclick="openTrocarSenha()" class="btn btn-y">Trocar senha agora</button>
+        </div>
         <!-- Parabéns pessoal (só aparece no aniversário) -->
         <div id="card-parabens" style="display:none;background:linear-gradient(135deg,#1e3a6e,#1e293b);border:1px solid #3b82f6;border-radius:14px;padding:18px 20px;margin-bottom:16px;text-align:center">
           <div style="font-size:30px;margin-bottom:6px">🎂🎉</div>
@@ -963,6 +994,31 @@ select.inp option:checked{background:#2563eb;color:#fff}
       <div class="page" id="p-com-func">
         <div style="margin-bottom:16px"><div style="font-size:17px;font-weight:500">Comunicados</div><div style="color:#64748b;font-size:12px;margin-top:2px">Mensagens criadas pela empresa</div></div>
         <div id="com-func-list" style="color:#64748b;font-size:13px;padding:10px 0">Nenhum comunicado recebido ainda.</div>
+      </div>
+
+      <!-- LIXEIRA -->
+      <div class="page admin-only" id="p-lixeira">
+        <div style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:19px;font-weight:600">🗑 Lixeira</div>
+            <div style="color:#94a3b8;font-size:14px;margin-top:3px">Itens excluídos — restaure ou remova permanentemente</div>
+          </div>
+          <button class="btn btn-r" onclick="esvaziarLixeira()">Esvaziar lixeira</button>
+        </div>
+        <div class="card">
+          <div id="lixeira-list"><div style="color:#94a3b8;font-size:14px;text-align:center;padding:20px">Lixeira vazia.</div></div>
+        </div>
+      </div>
+
+      <!-- RECUPERAÇÃO DE SENHA -->
+      <div class="page admin-only" id="p-recuperacao">
+        <div style="margin-bottom:20px">
+          <div style="font-size:19px;font-weight:600">🔑 Recuperação de Senha</div>
+          <div style="color:#94a3b8;font-size:14px;margin-top:3px">Solicitações de redefinição de senha dos funcionários</div>
+        </div>
+        <div class="card">
+          <div id="recuperacao-list"><div style="color:#94a3b8;font-size:14px;text-align:center;padding:20px">Nenhuma solicitação pendente.</div></div>
+        </div>
       </div>
 
       <!-- CONFIGURAÇÕES -->
@@ -1699,8 +1755,11 @@ function afterLogin() {
   show('v-app');
   if (currentUser.role === 'admin') {
     navTo('p-dash','si-dash','Dashboard');
+    carregarLixeira();
+    carregarRecuperacoes();
   } else {
     navTo('p-dash-func','si-dash-func','Início');
+    verificarSenhaTemp();
   }
 }
 
@@ -3817,6 +3876,168 @@ function setFtab(btn) {
   const parent = btn.closest('.ftabs'); if(!parent) return;
   parent.querySelectorAll('.ftab').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
+}
+
+// ── LIXEIRA ─────────────────────────────────────────────────────────────────
+var lixeira = [];
+async function carregarLixeira() {
+  try {
+    lixeira = await api('GET', '/api/lixeira');
+    renderLixeira();
+    var badge = sel('sb-lixeira-badge');
+    if (badge) { badge.textContent = lixeira.length; badge.style.display = lixeira.length ? 'inline' : 'none'; }
+  } catch(e) {}
+}
+var tipoLixeiraLabel = { atestado:'Atestado', documento:'Documento', ferias:'Férias', funcionario:'Funcionário', empresa:'Empresa' };
+function renderLixeira() {
+  var list = sel('lixeira-list'); if (!list) return;
+  if (!lixeira.length) { list.innerHTML = '<div style="color:#94a3b8;font-size:14px;text-align:center;padding:20px">Lixeira vazia.</div>'; return; }
+  list.innerHTML = lixeira.map(function(item) {
+    var d = item.dados || {};
+    var nome = d.nome || d.emp_nome || d.titulo || '—';
+    var sub = d.tipo || d.cargo || d.cnpj || '';
+    var dt = item.excluidoEm ? item.excluidoEm.split('T')[0] : '';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid rgba(51,65,85,0.4);flex-wrap:wrap">'
+      + '<div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">'
+        + '<div style="width:36px;height:36px;border-radius:8px;background:#374151;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🗑</div>'
+        + '<div style="min-width:0">'
+          + '<div style="font-size:14px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+nome+'</div>'
+          + '<div style="font-size:12px;color:#94a3b8">'+tipoLixeiraLabel[item.tipo]+'' + (sub?' · '+sub:'') + ' · Excluído em '+fmtD(dt)+' por '+item.excluidoPor+'</div>'
+        + '</div>'
+      + '</div>'
+      + '<div style="display:flex;gap:8px;flex-shrink:0">'
+        + '<button class="btn btn-sm btn-g" onclick="restaurarItem('+item.id+')">↩ Restaurar</button>'
+        + '<button class="btn btn-sm btn-r" onclick="excluirPermanente('+item.id+')">✕ Apagar</button>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+async function restaurarItem(id) {
+  if (!confirm('Restaurar este item?')) return;
+  try {
+    await api('POST', '/api/lixeira/'+id+'/restaurar');
+    lixeira = lixeira.filter(function(x){ return x.id !== id; });
+    renderLixeira();
+    var badge = sel('sb-lixeira-badge');
+    if (badge) { badge.textContent = lixeira.length; badge.style.display = lixeira.length ? 'inline' : 'none'; }
+    await loadAllData();
+    renderDash(); renderFerias(); renderDocsEnviados(); renderAtesAdmin();
+    alert('Item restaurado com sucesso!');
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+async function excluirPermanente(id) {
+  if (!confirm('Apagar permanentemente? Esta ação não pode ser desfeita.')) return;
+  try {
+    await api('DELETE', '/api/lixeira/'+id);
+    lixeira = lixeira.filter(function(x){ return x.id !== id; });
+    renderLixeira();
+    var badge = sel('sb-lixeira-badge');
+    if (badge) { badge.textContent = lixeira.length; badge.style.display = lixeira.length ? 'inline' : 'none'; }
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+async function esvaziarLixeira() {
+  if (!lixeira.length) return;
+  if (!confirm('Esvaziar a lixeira? Todos os itens serão apagados permanentemente.')) return;
+  try {
+    for (var i = 0; i < lixeira.length; i++) {
+      await api('DELETE', '/api/lixeira/'+lixeira[i].id);
+    }
+    lixeira = [];
+    renderLixeira();
+    var badge = sel('sb-lixeira-badge');
+    if (badge) badge.style.display = 'none';
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
+// ── RECUPERAÇÃO DE SENHA ─────────────────────────────────────────────────────
+var recuperacoes = [];
+function abrirRecuperar() {
+  var f = sel('recup-form'); if(f) f.style.display = 'block';
+  var ok = sel('recup-ok'); if(ok) ok.style.display = 'none';
+  var err = sel('recup-err'); if(err) err.style.display = 'none';
+}
+function fecharRecuperar() {
+  var f = sel('recup-form'); if(f) f.style.display = 'none';
+}
+async function enviarRecuperacao() {
+  var cpf = (sel('recup-cpf')||{}).value || '';
+  var nasc = (sel('recup-nasc')||{}).value || '';
+  var ok = sel('recup-ok'); var err = sel('recup-err');
+  if(ok) ok.style.display='none'; if(err) err.style.display='none';
+  if (!cpf || !nasc) { if(err){err.textContent='Preencha CPF e data de nascimento.';err.style.display='block';} return; }
+  try {
+    await api('POST', '/api/recuperar-senha', { cpf, nasc });
+    if(ok) ok.style.display='block';
+    if(err) err.style.display='none';
+    setTimeout(fecharRecuperar, 3000);
+  } catch(e) {
+    if(err){err.textContent = e.message || 'Dados não encontrados.'; err.style.display='block';}
+  }
+}
+async function carregarRecuperacoes() {
+  try {
+    recuperacoes = await api('GET', '/api/recuperacao');
+    renderRecuperacoes();
+    var pend = recuperacoes.filter(function(r){ return r.status === 'pendente'; }).length;
+    var badge = sel('sb-recup-badge');
+    if (badge) { badge.textContent = pend; badge.style.display = pend ? 'inline' : 'none'; }
+  } catch(e) {}
+}
+function renderRecuperacoes() {
+  var list = sel('recuperacao-list'); if(!list) return;
+  if (!recuperacoes.length) { list.innerHTML = '<div style="color:#94a3b8;font-size:14px;text-align:center;padding:20px">Nenhuma solicitação.</div>'; return; }
+  var stMap = { pendente:{cls:'b-amber',lbl:'Pendente'}, aprovado:{cls:'b-green',lbl:'Aprovado'}, recusado:{cls:'b-red',lbl:'Recusado'}, concluido:{cls:'b-gray',lbl:'Concluído'} };
+  list.innerHTML = recuperacoes.map(function(r) {
+    var st = stMap[r.status] || stMap.pendente;
+    var dt = r.createdAt ? r.createdAt.split('T')[0] : '';
+    var btns = r.status === 'pendente'
+      ? '<button class="btn btn-sm btn-g" onclick="aprovarRecuperacao('+r.id+')">✓ Aprovar</button>'
+        + '<button class="btn btn-sm btn-r" onclick="recusarRecuperacao('+r.id+')" style="margin-left:6px">✕ Recusar</button>'
+      : '';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid rgba(51,65,85,0.4);flex-wrap:wrap">'
+      + '<div style="min-width:0;flex:1">'
+        + '<div style="font-size:14px;font-weight:500;color:#fff">'+r.empNome+'</div>'
+        + '<div style="font-size:12px;color:#94a3b8">CPF: '+r.cpf+' · '+fmtD(dt)+'</div>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+        + '<span class="badge '+st.cls+'">'+st.lbl+'</span>'
+        + btns
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+async function aprovarRecuperacao(id) {
+  if (!confirm('Aprovar recuperação? A senha do funcionário será redefinida para 123456.')) return;
+  try {
+    await api('PUT', '/api/recuperacao/'+id+'/aprovar');
+    var r = recuperacoes.find(function(x){ return x.id===id; }); if(r) r.status='aprovado';
+    renderRecuperacoes();
+    var pend = recuperacoes.filter(function(x){ return x.status==='pendente'; }).length;
+    var badge = sel('sb-recup-badge');
+    if(badge){ badge.textContent=pend; badge.style.display=pend?'inline':'none'; }
+    alert('Senha redefinida para 123456! O funcionário receberá uma notificação no app.');
+  } catch(e) { alert('Erro: '+e.message); }
+}
+async function recusarRecuperacao(id) {
+  if (!confirm('Recusar esta solicitação?')) return;
+  try {
+    await api('PUT', '/api/recuperacao/'+id+'/recusar');
+    var r = recuperacoes.find(function(x){ return x.id===id; }); if(r) r.status='recusado';
+    renderRecuperacoes();
+    var pend = recuperacoes.filter(function(x){ return x.status==='pendente'; }).length;
+    var badge = sel('sb-recup-badge');
+    if(badge){ badge.textContent=pend; badge.style.display=pend?'inline':'none'; }
+  } catch(e) { alert('Erro: '+e.message); }
+}
+async function verificarSenhaTemp() {
+  try {
+    var res = await api('GET', '/api/recuperacao/minha');
+    var banner = sel('banner-senha-temp');
+    if (banner) banner.style.display = res.temAprovada ? 'flex' : 'none';
+  } catch(e) {}
+}
+function openTrocarSenha() {
+  openPerfil();
 }
 
 // ── INIT ────────────────────────────────────────────────────────────────────
