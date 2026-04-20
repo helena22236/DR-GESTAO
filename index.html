@@ -2722,6 +2722,12 @@ function renderFeriasDash() {
 }
 
 async function atualizarFeriasDash(id, status) {
+  if (status === 'concluido') {
+    var f = ferias.find(function(x){ return x.id === id; });
+    var nome = f ? f.empNome : 'este funcionário';
+    var ok = confirm('Deseja realmente concluir as férias de ' + nome + '?\n\nEssa ação não pode ser desfeita.');
+    if (!ok) return;
+  }
   try {
     await api('PUT', '/api/ferias/'+id+'/status', { status });
     var f = ferias.find(function(x){ return x.id === id; });
