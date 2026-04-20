@@ -2706,8 +2706,7 @@ function renderFeriasDash() {
         + '<div class="sol-sub">'+iniStr+' → '+fimStr+' · '+f.dias+' dias'+(f.diasVendidos?' · '+f.diasVendidos+' vendidos':'')+'</div>'
       + '</div>'
       + '<div class="sol-btns">'
-        + '<button class="btn btn-sm btn-g" onclick="atualizarFeriasDash('+f.id+',\'aprovado\')">Aprovar</button>'
-        + '<button class="btn btn-sm btn-r" onclick="atualizarFeriasDash('+f.id+',\'recusado\')">Recusar</button>'
+        + '<span class="badge b-amber">Pendente</span>'
       + '</div>'
     + '</div>';
   }).join('');
