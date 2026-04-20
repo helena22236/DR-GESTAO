@@ -637,10 +637,10 @@ select.inp{color:#94a3b8}
             <button class="btn btn-p" onclick="openReqFeriasAdmin()">+ Nova solicitação</button>
           </div>
           <div class="grid4" style="margin-bottom:20px">
-            <div class="stat"><div class="stat-n" id="fer-stat-pend">0</div><div class="stat-l">Pendentes</div><div class="stat-t" style="color:#fbbf24">aguardando</div></div>
-            <div class="stat"><div class="stat-n" id="fer-stat-aprov">0</div><div class="stat-l">Aprovadas</div><div class="stat-t">aprovado</div></div>
-            <div class="stat"><div class="stat-n" id="fer-stat-and">0</div><div class="stat-l">Em andamento</div><div class="stat-t" style="color:#60a5fa">em curso</div></div>
-            <div class="stat"><div class="stat-n" id="fer-stat-conc">0</div><div class="stat-l">Concluídas</div><div class="stat-t">finalizadas</div></div>
+            <div class="stat" style="cursor:pointer" onclick="openFeriasDetalhe('pendente','Pendentes — Aguardando')"><div class="stat-n" id="fer-stat-pend">0</div><div class="stat-l">Pendentes</div><div class="stat-t" style="color:#fbbf24">aguardando</div><div style="font-size:10px;color:#60a5fa;margin-top:6px">ver detalhes →</div></div>
+            <div class="stat" style="cursor:pointer" onclick="openFeriasDetalhe('aprovado','Aprovadas')"><div class="stat-n" id="fer-stat-aprov">0</div><div class="stat-l">Aprovadas</div><div class="stat-t">aprovado</div><div style="font-size:10px;color:#60a5fa;margin-top:6px">ver detalhes →</div></div>
+            <div class="stat" style="cursor:pointer" onclick="openFeriasDetalhe('em_andamento','Em andamento')"><div class="stat-n" id="fer-stat-and">0</div><div class="stat-l">Em andamento</div><div class="stat-t" style="color:#60a5fa">em curso</div><div style="font-size:10px;color:#60a5fa;margin-top:6px">ver detalhes →</div></div>
+            <div class="stat" style="cursor:pointer" onclick="openFeriasDetalhe('concluido','Concluídas')"><div class="stat-n" id="fer-stat-conc">0</div><div class="stat-l">Concluídas</div><div class="stat-t">finalizadas</div><div style="font-size:10px;color:#60a5fa;margin-top:6px">ver detalhes →</div></div>
           </div>
           <div class="card" style="margin-bottom:0">
             <div class="card-row" style="margin-bottom:14px">
@@ -1265,6 +1265,17 @@ select.inp{color:#94a3b8}
       <button class="modal-x" onclick="closeOverlay('ov-perfil')">&#215;</button>
     </div>
     <div class="modal-body" id="perfil-body"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL DETALHE FÉRIAS ══ -->
+<div class="overlay" id="ov-ferias-detalhe" onclick="if(event.target===this)closeOverlay('ov-ferias-detalhe')">
+  <div class="modal" style="width:520px;max-width:98vw">
+    <div class="modal-head">
+      <div class="modal-title" id="ferias-detalhe-titulo">Detalhes</div>
+      <button class="modal-x" onclick="closeOverlay('ov-ferias-detalhe')">&#215;</button>
+    </div>
+    <div class="modal-body" id="ferias-detalhe-body"></div>
   </div>
 </div>
 
@@ -2837,6 +2848,34 @@ async function excluirFerias(id) {
     ferias = ferias.filter(function(f){ return f.id !== id; });
     renderFerias();
   } catch(e) { alert('Erro: ' + e.message); }
+}
+
+function openFeriasDetalhe(status, titulo) {
+  var lista = ferias.filter(function(f){ return f.status === status; })
+    .sort(function(a,b){ return (a.ferIni||'').localeCompare(b.ferIni||''); });
+  var t = sel('ferias-detalhe-titulo'); if(t) t.textContent = '🏖️ ' + titulo;
+  var body = sel('ferias-detalhe-body');
+  if (!body) return;
+  if (!lista.length) {
+    body.innerHTML = '<div style="color:#64748b;font-size:13px;padding:10px 0">Nenhum funcionário neste status.</div>';
+  } else {
+    body.innerHTML = lista.map(function(f) {
+      var AVC = AV[(f.empId||0) % AV.length] || AV[0];
+      var emp = emps.find(function(e){ return e.id === f.empId; });
+      var foto = emp && emp.foto ? '<img src="'+emp.foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">' : ini(f.empNome);
+      var iniStr = f.ferIni ? fmtD(f.ferIni) : '—';
+      var fimStr = f.ferFim ? fmtD(f.ferFim) : '—';
+      return '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(51,65,85,0.4)">'
+        + '<div style="width:44px;height:44px;border-radius:50%;background:'+AVC.bg+';color:'+AVC.c+';font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">'+foto+'</div>'
+        + '<div style="flex:1">'
+          + '<div style="font-size:13px;font-weight:600;color:#e2e8f0">'+f.empNome+(f.empresa?' <span style="font-size:10px;color:#60a5fa">· '+f.empresa+'</span>':'')+'</div>'
+          + '<div style="font-size:11px;color:#64748b;margin-top:2px">'+iniStr+' → '+fimStr+' · '+f.dias+' dias</div>'
+          + (f.visto ? '<div style="font-size:10px;color:#4ade80;margin-top:2px">✅ Visto pelo funcionário</div>' : '')
+        + '</div>'
+      + '</div>';
+    }).join('');
+  }
+  sel('ov-ferias-detalhe').classList.add('on');
 }
 
 async function marcarFeriasVisto(id) {
