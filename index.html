@@ -1955,6 +1955,8 @@ function navTo(pid, sid, title) {
   if(pid === 'p-com') renderComHistorico();
   if(pid === 'p-com-func') renderComFunc();
   if(pid === 'p-avisos') renderAvisos();
+  if(pid === 'p-lixeira') carregarLixeira();
+  if(pid === 'p-recuperacao') carregarRecuperacoes();
   refreshSelects();
   renderSolicit();
   renderAtesNotif();
