@@ -2779,6 +2779,15 @@ function renderFeriasFuncCard() {
   }
 }
 
+async function excluirFerias(id) {
+  if (!confirm('Excluir esta solicitação de férias permanentemente?')) return;
+  try {
+    await api('DELETE', '/api/ferias/' + id);
+    ferias = ferias.filter(function(f){ return f.id !== id; });
+    renderFerias();
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
 async function marcarFeriasVisto(id) {
   try {
     await api('PUT', '/api/ferias/' + id + '/visto');
@@ -2831,6 +2840,7 @@ function renderFerias() {
           + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
             + '<span class="badge '+st.cls+'"'+(st.style?'style="'+st.style+'"':'')+'>'+st.lbl+'</span>'
             + badges
+            + '<button class="btn btn-sm btn-r" onclick="excluirFerias('+f.id+')" title="Excluir" style="padding:4px 8px">🗑</button>'
           + '</div>'
         + '</div>';
       }).join('');

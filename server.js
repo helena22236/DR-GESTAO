@@ -386,6 +386,13 @@ app.post('/api/ferias', authMiddleware, async (req, res) => {
   } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
 
+app.delete('/api/ferias/:id', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    await dbDelete('ferias', { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
 app.put('/api/ferias/:id/visto', authMiddleware, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
