@@ -2851,11 +2851,12 @@ async function excluirFerias(id) {
 }
 
 function openFeriasDetalhe(status, titulo) {
+  try {
   var lista = ferias.filter(function(f){ return f.status === status; })
     .sort(function(a,b){ return (a.ferIni||'').localeCompare(b.ferIni||''); });
   var t = sel('ferias-detalhe-titulo'); if(t) t.textContent = '🏖️ ' + titulo;
   var body = sel('ferias-detalhe-body');
-  if (!body) return;
+  if (!body) { alert('Modal não encontrado'); return; }
   if (!lista.length) {
     body.innerHTML = '<div style="color:#64748b;font-size:13px;padding:10px 0">Nenhum funcionário neste status.</div>';
   } else {
@@ -2876,6 +2877,7 @@ function openFeriasDetalhe(status, titulo) {
     }).join('');
   }
   sel('ov-ferias-detalhe').classList.add('on');
+  } catch(e) { alert('Erro: ' + e.message); }
 }
 
 async function marcarFeriasVisto(id) {
