@@ -485,11 +485,10 @@ select.inp option:checked{background:#2563eb;color:#fff}
     <button onclick="logout()" class="si" style="color:#64748b;margin-top:2px">
       <span class="si-inner"><svg viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Sair da conta</span></span>
     </button>
-    <div class="sb-bot">
-      <div class="sb-user" onclick="openPerfil()" title="Ver perfil">
-        <div class="sb-av" id="sb-av-txt">RL</div>
-        <div><div style="font-size:13px;font-weight:500" id="sb-user-name">—</div><div style="color:#94a3b8;font-size:11px" id="sb-user-role">—</div></div>
-      </div>
+    <div class="sb-bot" style="display:none">
+      <div class="sb-av" id="sb-av-txt" style="display:none"></div>
+      <span id="sb-user-name" style="display:none"></span>
+      <span id="sb-user-role" style="display:none"></span>
     </div>
   </div>
 
