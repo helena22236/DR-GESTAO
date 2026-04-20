@@ -298,7 +298,7 @@ select.inp option:checked{background:#2563eb;color:#fff}
       <!-- Formulário de recuperação (oculto por padrão) -->
       <div id="recup-form" style="display:none;margin-top:16px;border-top:1px solid #1e293b;padding-top:16px">
         <div style="font-size:14px;font-weight:500;margin-bottom:12px;color:#e2e8f0">Solicitar redefinição de senha</div>
-        <div style="color:#94a3b8;font-size:13px;margin-bottom:12px">Informe seu CPF e data de nascimento. O administrador vai analisar sua solicitação e, se aprovada, sua senha será redefinida para <strong style="color:#fff">123456</strong>.</div>
+        <div style="color:#94a3b8;font-size:13px;margin-bottom:12px">Informe seu CPF e data de nascimento. O administrador vai analisar sua solicitação e, se aprovada, sua senha será redefinida para <strong style="color:#fff">os 6 primeiros dígitos do seu CPF</strong>.</div>
         <div class="field"><label class="lbl">CPF</label><input class="inp" id="recup-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)"></div>
         <div class="field"><label class="lbl">Data de nascimento</label><input class="inp" id="recup-nasc" type="date"></div>
         <div class="toast t-ok" id="recup-ok" style="margin-bottom:10px;display:none">Solicitação enviada! Aguarde o administrador aprovar.</div>
@@ -910,7 +910,7 @@ select.inp option:checked{background:#2563eb;color:#fff}
           <div style="font-size:22px">🔑</div>
           <div style="flex:1">
             <div style="font-size:14px;font-weight:600;color:#fbbf24">Troque sua senha!</div>
-            <div style="font-size:13px;color:#fcd34d;margin-top:2px">Sua senha foi redefinida para <strong>123456</strong>. Por segurança, crie uma nova senha agora.</div>
+            <div style="font-size:13px;color:#fcd34d;margin-top:2px">Sua senha foi redefinida para <strong>os 6 primeiros dígitos do seu CPF</strong>. Por segurança, crie uma nova senha agora.</div>
           </div>
           <button onclick="openTrocarSenha()" class="btn btn-y">Trocar senha agora</button>
         </div>
@@ -4061,7 +4061,7 @@ function renderRecuperacoes() {
   }).join('');
 }
 async function aprovarRecuperacao(id) {
-  if (!confirm('Aprovar recuperação? A senha do funcionário será redefinida para 123456.')) return;
+  if (!confirm('Aprovar recuperação? A senha do funcionário será redefinida para os 6 primeiros dígitos do CPF.')) return;
   try {
     await api('PUT', '/api/recuperacao/'+id+'/aprovar');
     var r = recuperacoes.find(function(x){ return x.id===id; }); if(r) r.status='aprovado';
@@ -4069,7 +4069,7 @@ async function aprovarRecuperacao(id) {
     var pend = recuperacoes.filter(function(x){ return x.status==='pendente'; }).length;
     var badge = sel('sb-recup-badge');
     if(badge){ badge.textContent=pend; badge.style.display=pend?'inline':'none'; }
-    alert('Senha redefinida para 123456! O funcionário receberá uma notificação no app.');
+    alert('Senha redefinida para os 6 primeiros dígitos do CPF! O funcionário receberá uma notificação no app.');
   } catch(e) { alert('Erro: '+e.message); }
 }
 async function recusarRecuperacao(id) {

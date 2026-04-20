@@ -729,7 +729,9 @@ app.put('/api/recuperacao/:id/aprovar', authMiddleware, adminOnly, async (req, r
   try {
     const rec = await dbGet('recuperacao_senha', { id: parseInt(req.params.id) });
     if (!rec) return res.status(404).json({ message: 'Solicitação não encontrada' });
-    const hash = await bcrypt.hash('123456', 10);
+    // Senha padrão = primeiros 6 dígitos do CPF
+    const senhaTemp = rec.cpf.replace(/\D/g, '').slice(0, 6);
+    const hash = await bcrypt.hash(senhaTemp, 10);
     await dbUpdate('employees', { senha: hash }, { id: rec.emp_id });
     await dbUpdate('recuperacao_senha', { status: 'aprovado' }, { id: parseInt(req.params.id) });
     res.json({ success: true });
