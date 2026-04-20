@@ -636,23 +636,11 @@ select.inp{color:#94a3b8}
             </div>
             <button class="btn btn-p" onclick="openReqFeriasAdmin()">+ Nova solicitação</button>
           </div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
-            <div class="stat" style="display:flex;flex-direction:column;justify-content:space-between">
-              <div><div class="stat-n" id="fer-stat-pend">0</div><div class="stat-l">Pendentes</div><div class="stat-t" style="color:#fbbf24">aguardando</div></div>
-              <button class="btn btn-sm" style="margin-top:10px;width:100%;font-size:11px" onclick="openFeriasDetalhe('pendente','Pendentes')">Ver detalhes</button>
-            </div>
-            <div class="stat" style="display:flex;flex-direction:column;justify-content:space-between">
-              <div><div class="stat-n" id="fer-stat-aprov">0</div><div class="stat-l">Aprovadas</div><div class="stat-t">aprovado</div></div>
-              <button class="btn btn-sm" style="margin-top:10px;width:100%;font-size:11px" onclick="openFeriasDetalhe('aprovado','Aprovadas')">Ver detalhes</button>
-            </div>
-            <div class="stat" style="display:flex;flex-direction:column;justify-content:space-between">
-              <div><div class="stat-n" id="fer-stat-and">0</div><div class="stat-l">Em andamento</div><div class="stat-t" style="color:#60a5fa">em curso</div></div>
-              <button class="btn btn-sm" style="margin-top:10px;width:100%;font-size:11px" onclick="openFeriasDetalhe('em_andamento','Em andamento')">Ver detalhes</button>
-            </div>
-            <div class="stat" style="display:flex;flex-direction:column;justify-content:space-between">
-              <div><div class="stat-n" id="fer-stat-conc">0</div><div class="stat-l">Concluídas</div><div class="stat-t">finalizadas</div></div>
-              <button class="btn btn-sm" style="margin-top:10px;width:100%;font-size:11px" onclick="openFeriasDetalhe('concluido','Concluídas')">Ver detalhes</button>
-            </div>
+          <div class="grid4" style="margin-bottom:20px">
+            <div class="stat"><div class="stat-n" id="fer-stat-pend">0</div><div class="stat-l">Pendentes</div><div class="stat-t" style="color:#fbbf24">aguardando</div></div>
+            <div class="stat"><div class="stat-n" id="fer-stat-aprov">0</div><div class="stat-l">Aprovadas</div><div class="stat-t">aprovado</div></div>
+            <div class="stat"><div class="stat-n" id="fer-stat-and">0</div><div class="stat-l">Em andamento</div><div class="stat-t" style="color:#60a5fa">em curso</div></div>
+            <div class="stat"><div class="stat-n" id="fer-stat-conc">0</div><div class="stat-l">Concluídas</div><div class="stat-t">finalizadas</div></div>
           </div>
           <div class="card" style="margin-bottom:0">
             <div class="card-row" style="margin-bottom:14px">
@@ -1277,17 +1265,6 @@ select.inp{color:#94a3b8}
       <button class="modal-x" onclick="closeOverlay('ov-perfil')">&#215;</button>
     </div>
     <div class="modal-body" id="perfil-body"></div>
-  </div>
-</div>
-
-<!-- ══ MODAL DETALHE FÉRIAS ══ -->
-<div class="overlay" id="ov-ferias-detalhe" onclick="if(event.target===this)closeOverlay('ov-ferias-detalhe')">
-  <div class="modal" style="width:520px;max-width:98vw">
-    <div class="modal-head">
-      <div class="modal-title" id="ferias-detalhe-titulo">Detalhes</div>
-      <button class="modal-x" onclick="closeOverlay('ov-ferias-detalhe')">&#215;</button>
-    </div>
-    <div class="modal-body" id="ferias-detalhe-body"></div>
   </div>
 </div>
 
@@ -2808,87 +2785,12 @@ function renderFeriasFuncCard() {
   }
 }
 
-function openReqFeriasEditar(id) {
-  var f = ferias.find(function(x){ return x.id === id; });
-  if (!f) return;
-  var row = sel('req-ferias-func-row'); if(row) row.style.display = 'none';
-  var titulo = sel('req-ferias-titulo'); if(titulo) titulo.textContent = '✏ Editar Férias';
-  sel('req-fer-paq-ini').value = f.periodoAquiIni || '';
-  sel('req-fer-paq-fim').value = f.periodoAquiFim || '';
-  sel('req-fer-ini').value = f.ferIni || '';
-  sel('req-fer-fim').value = f.ferFim || '';
-  sel('req-fer-dias').value = f.dias || 30;
-  sel('req-fer-obs').value = f.obs || '';
-  var empSel = sel('req-fer-empresa'); if(empSel) empSel.value = f.empresa || '';
-  // Trocar botão para salvar edição
-  var btnEnviar = document.querySelector('#ov-req-ferias .btn-p');
-  if (btnEnviar) { btnEnviar.textContent = 'Salvar alterações'; btnEnviar.onclick = function(){ salvarEdicaoFerias(id); }; }
-  sel('ov-req-ferias').classList.add('on');
-}
-
-async function salvarEdicaoFerias(id) {
-  var ferIni = sel('req-fer-ini').value;
-  if (!ferIni) { alert('Informe a data de início.'); return; }
-  try {
-    await api('PUT', '/api/ferias/' + id + '/editar', {
-      periodoAquiIni: sel('req-fer-paq-ini').value,
-      periodoAquiFim: sel('req-fer-paq-fim').value,
-      ferIni: ferIni,
-      ferFim: sel('req-fer-fim').value,
-      dias: parseInt(sel('req-fer-dias').value) || 30,
-      empresa: (sel('req-fer-empresa')||{}).value || '',
-      obs: sel('req-fer-obs').value
-    });
-    var f = ferias.find(function(x){ return x.id === id; });
-    if (f) {
-      f.periodoAquiIni = sel('req-fer-paq-ini').value;
-      f.periodoAquiFim = sel('req-fer-paq-fim').value;
-      f.ferIni = ferIni; f.ferFim = sel('req-fer-fim').value;
-      f.dias = parseInt(sel('req-fer-dias').value) || 30;
-      f.empresa = (sel('req-fer-empresa')||{}).value || '';
-      f.obs = sel('req-fer-obs').value;
-    }
-    closeOverlay('ov-req-ferias');
-    renderFerias();
-  } catch(e) { alert('Erro: ' + e.message); }
-}
-
 async function excluirFerias(id) {
   if (!confirm('Excluir esta solicitação de férias permanentemente?')) return;
   try {
     await api('DELETE', '/api/ferias/' + id);
     ferias = ferias.filter(function(f){ return f.id !== id; });
     renderFerias();
-  } catch(e) { alert('Erro: ' + e.message); }
-}
-
-function openFeriasDetalhe(status, titulo) {
-  try {
-  var lista = ferias.filter(function(f){ return f.status === status; })
-    .sort(function(a,b){ return (a.ferIni||'').localeCompare(b.ferIni||''); });
-  var t = sel('ferias-detalhe-titulo'); if(t) t.textContent = '🏖️ ' + titulo;
-  var body = sel('ferias-detalhe-body');
-  if (!body) { alert('Modal não encontrado'); return; }
-  if (!lista.length) {
-    body.innerHTML = '<div style="color:#64748b;font-size:13px;padding:10px 0">Nenhum funcionário neste status.</div>';
-  } else {
-    body.innerHTML = lista.map(function(f) {
-      var AVC = AV[(f.empId||0) % AV.length] || AV[0];
-      var emp = emps.find(function(e){ return e.id === f.empId; });
-      var foto = emp && emp.foto ? '<img src="'+emp.foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">' : ini(f.empNome);
-      var iniStr = f.ferIni ? fmtD(f.ferIni) : '—';
-      var fimStr = f.ferFim ? fmtD(f.ferFim) : '—';
-      return '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(51,65,85,0.4)">'
-        + '<div style="width:44px;height:44px;border-radius:50%;background:'+AVC.bg+';color:'+AVC.c+';font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">'+foto+'</div>'
-        + '<div style="flex:1">'
-          + '<div style="font-size:13px;font-weight:600;color:#e2e8f0">'+f.empNome+(f.empresa?' <span style="font-size:10px;color:#60a5fa">· '+f.empresa+'</span>':'')+'</div>'
-          + '<div style="font-size:11px;color:#64748b;margin-top:2px">'+iniStr+' → '+fimStr+' · '+f.dias+' dias</div>'
-          + (f.visto ? '<div style="font-size:10px;color:#4ade80;margin-top:2px">✅ Visto pelo funcionário</div>' : '')
-        + '</div>'
-      + '</div>';
-    }).join('');
-  }
-  sel('ov-ferias-detalhe').classList.add('on');
   } catch(e) { alert('Erro: ' + e.message); }
 }
 
@@ -3005,6 +2907,8 @@ function openReqFerias() {
   sel('req-fer-vendidos').value = '0';
   sel('req-fer-obs').value = '';
   var aviso = sel('req-ferias-aviso-venda'); if(aviso) aviso.style.display='none';
+  var btnEnviar = document.querySelector('#ov-req-ferias .btn-p');
+  if (btnEnviar) { btnEnviar.textContent = 'Enviar solicitação'; btnEnviar.onclick = salvarSolicitacaoFerias; }
   sel('ov-req-ferias').classList.add('on');
 }
 
@@ -3032,6 +2936,9 @@ function openReqFeriasAdmin() {
   sel('req-fer-vendidos').value = '0';
   sel('req-fer-obs').value = '';
   var aviso = sel('req-ferias-aviso-venda'); if(aviso) aviso.style.display='none';
+  // sempre resetar botão para modo criação
+  var btnEnviar = document.querySelector('#ov-req-ferias .btn-p');
+  if (btnEnviar) { btnEnviar.textContent = 'Enviar solicitação'; btnEnviar.onclick = salvarSolicitacaoFerias; }
   sel('ov-req-ferias').classList.add('on');
 }
 
