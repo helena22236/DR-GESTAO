@@ -1155,7 +1155,16 @@ select.inp option:checked{background:#2563eb;color:#fff}
 
       <!-- PERFIL FUNCIONÁRIO -->
       <div class="page" id="p-perfil-func">
-        <div style="margin-bottom:16px"><div style="font-size:17px;font-weight:500">Meu perfil</div><div style="color:#64748b;font-size:12px;margin-top:2px">Seus dados pessoais e profissionais</div></div>
+        <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:19px;font-weight:600">Meu perfil</div>
+            <div style="color:#94a3b8;font-size:14px;margin-top:3px">Seus dados pessoais e profissionais</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-p" onclick="abrirEditarPerfil()">✏ Editar perfil</button>
+            <button class="btn" onclick="abrirTrocarSenha()" style="border-color:#3b82f6;color:#60a5fa">🔑 Trocar senha</button>
+          </div>
+        </div>
         <div class="grid2">
           <div id="perfil-func-body"></div>
           <div>
@@ -1170,6 +1179,64 @@ select.inp option:checked{background:#2563eb;color:#fff}
     </div>
   </div>
 </div>
+</div>
+
+<!-- ══ MODAL EDITAR PERFIL FUNCIONÁRIO ══ -->
+<div class="overlay" id="ov-editar-perfil" onclick="if(event.target===this)closeOverlay('ov-editar-perfil')">
+  <div class="modal" style="width:540px;max-width:98vw">
+    <div class="modal-head">
+      <div class="modal-title">✏ Editar meu perfil</div>
+      <button class="modal-x" onclick="closeOverlay('ov-editar-perfil')">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div class="toast t-ok" id="ep-ok" style="display:none;margin-bottom:12px">Perfil atualizado com sucesso!</div>
+      <div class="toast t-err" id="ep-err" style="display:none;margin-bottom:12px">Erro ao salvar. Tente novamente.</div>
+      <div class="g2">
+        <div class="field"><label class="lbl">Telefone</label><input class="inp" id="ep-tel" placeholder="(00) 00000-0000"></div>
+        <div class="field"><label class="lbl">Telefone 2</label><input class="inp" id="ep-tel2" placeholder="(00) 00000-0000"></div>
+      </div>
+      <div class="field"><label class="lbl">E-mail</label><input class="inp" id="ep-email" type="email" placeholder="seu@email.com"></div>
+      <div class="field"><label class="lbl">Endereço (Rua/Número)</label><input class="inp" id="ep-en" placeholder="Rua..."></div>
+      <div class="g2">
+        <div class="field"><label class="lbl">CEP</label><input class="inp" id="ep-ep" placeholder="00000-000"></div>
+        <div class="field"><label class="lbl">Complemento</label><input class="inp" id="ep-ew" placeholder="Apto, bloco..."></div>
+      </div>
+      <div style="border-top:1px solid #1e293b;margin:14px 0 14px;padding-top:14px;font-size:12px;color:#64748b;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Contato de emergência</div>
+      <div class="g2">
+        <div class="field"><label class="lbl">Nome</label><input class="inp" id="ep-nome-emerg" placeholder="Nome do contato"></div>
+        <div class="field"><label class="lbl">Parentesco</label><input class="inp" id="ep-parentesco" placeholder="Ex: Mãe, Pai..."></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label class="lbl">Telefone</label><input class="inp" id="ep-tel-emerg" placeholder="(00) 00000-0000"></div>
+        <div class="field"><label class="lbl">WhatsApp</label><input class="inp" id="ep-wpp-emerg" placeholder="(00) 00000-0000"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeOverlay('ov-editar-perfil')">Cancelar</button>
+      <button class="btn btn-p" onclick="salvarEditarPerfil()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL TROCAR SENHA ══ -->
+<div class="overlay" id="ov-trocar-senha" onclick="if(event.target===this)closeOverlay('ov-trocar-senha')">
+  <div class="modal" style="width:400px;max-width:98vw">
+    <div class="modal-head">
+      <div class="modal-title">🔑 Trocar senha</div>
+      <button class="modal-x" onclick="closeOverlay('ov-trocar-senha')">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div class="toast t-ok" id="ts-ok" style="display:none;margin-bottom:12px">Senha alterada com sucesso!</div>
+      <div class="toast t-err" id="ts-err" style="display:none;margin-bottom:12px">Erro ao alterar senha.</div>
+      <div class="field"><label class="lbl">Senha atual</label><input class="inp" id="ts-atual" type="password" placeholder="••••••••"></div>
+      <div class="field"><label class="lbl">Nova senha</label><input class="inp" id="ts-nova" type="password" placeholder="••••••••"></div>
+      <div class="field"><label class="lbl">Confirmar nova senha</label><input class="inp" id="ts-conf" type="password" placeholder="••••••••"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeOverlay('ov-trocar-senha')">Cancelar</button>
+      <button class="btn btn-p" onclick="salvarTrocarSenha()">Alterar senha</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ MODAL CADASTRO ══ -->
@@ -4089,8 +4156,70 @@ async function verificarSenhaTemp() {
     if (banner) banner.style.display = res.temAprovada ? 'flex' : 'none';
   } catch(e) {}
 }
-function openTrocarSenha() {
-  openPerfil();
+function abrirEditarPerfil() {
+  if (!currentUser) return;
+  var emp = emps.find(function(e){ return e.id === currentUser.id; });
+  if (!emp) return;
+  var set = function(id, val){ var el=sel(id); if(el) el.value = val||''; };
+  set('ep-tel', emp.tel); set('ep-tel2', emp.tel2); set('ep-email', emp.email);
+  set('ep-en', emp.en); set('ep-ep', emp.ep); set('ep-ew', emp.ew);
+  set('ep-nome-emerg', emp.en2||''); set('ep-parentesco', emp.ep2||'');
+  set('ep-tel-emerg', emp.et); set('ep-wpp-emerg', emp.ew2||'');
+  var ok=sel('ep-ok'); var err=sel('ep-err');
+  if(ok) ok.style.display='none'; if(err) err.style.display='none';
+  var ov=sel('ov-editar-perfil'); if(ov) ov.classList.add('on');
+}
+async function salvarEditarPerfil() {
+  if (!currentUser) return;
+  var gv2 = function(id){ var el=sel(id); return el?el.value.trim():''; };
+  var ok=sel('ep-ok'); var err=sel('ep-err');
+  if(ok) ok.style.display='none'; if(err) err.style.display='none';
+  try {
+    await api('PUT', '/api/employees/'+currentUser.id+'/perfil', {
+      tel:  gv2('ep-tel'), tel2: gv2('ep-tel2'), email: gv2('ep-email'),
+      en:   gv2('ep-en'),  ep:   gv2('ep-ep'),   ew:   gv2('ep-ew'),
+      et:   gv2('ep-tel-emerg'), ew2: gv2('ep-wpp-emerg'),
+      en2:  gv2('ep-nome-emerg'), ep2: gv2('ep-parentesco')
+    });
+    var emp = emps.find(function(e){ return e.id === currentUser.id; });
+    if (emp) {
+      emp.tel=gv2('ep-tel'); emp.tel2=gv2('ep-tel2'); emp.email=gv2('ep-email');
+      emp.en=gv2('ep-en'); emp.ep=gv2('ep-ep'); emp.ew=gv2('ep-ew');
+      emp.et=gv2('ep-tel-emerg');
+    }
+    renderPerfilFunc(emp);
+    if(ok) ok.style.display='block';
+    setTimeout(function(){ closeOverlay('ov-editar-perfil'); }, 1500);
+  } catch(e) {
+    if(err){ err.textContent='Erro: '+e.message; err.style.display='block'; }
+  }
+}
+function abrirTrocarSenha() {
+  var ok=sel('ts-ok'); var err=sel('ts-err');
+  if(ok) ok.style.display='none'; if(err) err.style.display='none';
+  ['ts-atual','ts-nova','ts-conf'].forEach(function(id){ var el=sel(id); if(el) el.value=''; });
+  var ov=sel('ov-trocar-senha'); if(ov) ov.classList.add('on');
+}
+function openTrocarSenha() { abrirTrocarSenha(); }
+async function salvarTrocarSenha() {
+  var ok=sel('ts-ok'); var err=sel('ts-err');
+  if(ok) ok.style.display='none'; if(err) err.style.display='none';
+  var atual = (sel('ts-atual')||{}).value||'';
+  var nova  = (sel('ts-nova')||{}).value||'';
+  var conf  = (sel('ts-conf')||{}).value||'';
+  if (!atual||!nova) { if(err){err.textContent='Preencha todos os campos.';err.style.display='block';} return; }
+  if (nova !== conf) { if(err){err.textContent='As senhas não coincidem.';err.style.display='block';} return; }
+  if (nova.length < 6) { if(err){err.textContent='A nova senha precisa ter no mínimo 6 caracteres.';err.style.display='block';} return; }
+  try {
+    await api('PUT', '/api/employees/'+currentUser.id+'/senha', { senhaAtual: atual, novaSenha: nova });
+    // Marca recuperação como concluída se houver
+    api('PUT', '/api/recuperacao/concluir').catch(function(){});
+    var banner = sel('banner-senha-temp'); if(banner) banner.style.display='none';
+    if(ok) ok.style.display='block';
+    setTimeout(function(){ closeOverlay('ov-trocar-senha'); }, 1500);
+  } catch(e) {
+    if(err){ err.textContent=e.message||'Erro ao alterar senha.'; err.style.display='block'; }
+  }
 }
 
 // ── INIT ────────────────────────────────────────────────────────────────────

@@ -633,6 +633,39 @@ app.put('/api/config', authMiddleware, adminOnly, async (req, res) => {
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
 
+// ─── Editar perfil próprio (funcionário) ─────────────────────────────────
+app.put('/api/employees/:id/perfil', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (req.user.role !== 'admin' && req.user.id !== id)
+      return res.status(403).json({ message: 'Acesso negado' });
+    const { tel, tel2, email, en, ep, ew, et, ew2, en2, ep2 } = req.body || {};
+    await dbUpdate('employees', {
+      tel: tel||'', tel2: tel2||'', email: email||'',
+      en: en||'', ep: ep||'', ew: ew||'', et: et||''
+    }, { id });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+// ─── Trocar senha própria ─────────────────────────────────────────────────
+app.put('/api/employees/:id/senha', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (req.user.role !== 'admin' && req.user.id !== id)
+      return res.status(403).json({ message: 'Acesso negado' });
+    const { senhaAtual, novaSenha } = req.body || {};
+    if (!senhaAtual || !novaSenha) return res.status(400).json({ message: 'Preencha todos os campos' });
+    const emp = await dbGet('employees', { id });
+    if (!emp) return res.status(404).json({ message: 'Usuário não encontrado' });
+    const ok = await bcrypt.compare(senhaAtual, emp.senha || '');
+    if (!ok) return res.status(401).json({ message: 'Senha atual incorreta' });
+    const hash = await bcrypt.hash(novaSenha, 10);
+    await dbUpdate('employees', { senha: hash }, { id });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
 // ─── Foto de perfil ───────────────────────────────────────────────────────
 app.put('/api/employees/:id/foto', authMiddleware, async (req, res) => {
   try {
