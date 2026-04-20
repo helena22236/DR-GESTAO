@@ -3717,11 +3717,16 @@ function renderComHistorico() {
   var chMap = {wz:'WZ',em:'email',both:'WZ+email'};
   var chCls = {wz:'b-green',em:'b-blue',both:'b-amber'};
   el.innerHTML = comunicados.slice().reverse().slice(0,10).map(function(c){
-    return '<div class="aviso" style="margin-bottom:8px">'
-      + '<span class="badge '+(chCls[c.ch]||'b-blue')+'" style="margin-bottom:5px;display:inline-block">'+(chMap[c.ch]||c.ch)+'</span>'
-      + '<div class="aviso-title">'+c.titulo+'</div>'
-      + '<div class="aviso-txt">'+c.msg+'</div>'
-      + '<div class="aviso-meta">'+(c.data?fmtD(c.data):'')+(c.dest?' · '+c.dest:'')+'</div>'
+    return '<div class="aviso" style="margin-bottom:8px;position:relative">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
+        + '<div style="flex:1">'
+          + '<span class="badge '+(chCls[c.ch]||'b-blue')+'" style="margin-bottom:5px;display:inline-block">'+(chMap[c.ch]||c.ch)+'</span>'
+          + '<div class="aviso-title">'+c.titulo+'</div>'
+          + '<div class="aviso-txt">'+c.msg+'</div>'
+          + '<div class="aviso-meta">'+(c.data?fmtD(c.data):'')+(c.dest?' · '+c.dest:'')+'</div>'
+        + '</div>'
+        + '<button class="btn btn-sm btn-r" onclick="excluirComunicado('+c.id+')" title="Excluir" style="flex-shrink:0;padding:4px 8px">🗑</button>'
+      + '</div>'
       + '</div>';
   }).join('');
 }
@@ -3746,6 +3751,15 @@ async function sendCom() {
   }
   sv('com-titulo', ''); sv('com-msg', '');
   showT('t-com');
+}
+
+async function excluirComunicado(id) {
+  if (!confirm('Excluir este comunicado permanentemente?')) return;
+  try {
+    await api('DELETE', '/api/comunicados/' + id);
+    comunicados = comunicados.filter(function(c){ return c.id !== id; });
+    renderComHistorico();
+  } catch(e) { alert('Erro: ' + e.message); }
 }
 
 // ── CADASTRO PÚBLICO ───────────────────────────────────────────────────────

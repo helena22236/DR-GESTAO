@@ -588,6 +588,16 @@ app.post('/api/comunicados', authMiddleware, adminOnly, async (req, res) => {
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
 
+app.delete('/api/comunicados/:id', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const row = await dbGet('comunicados', { id });
+    if (row) await moverParaLixeira('comunicado', row, req.user.nome || req.user.email || '');
+    await dbDelete('comunicados', { id });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
 // ─── CONFIG ───────────────────────────────────────────────────────────────
 app.get('/api/config', authMiddleware, async (req, res) => {
   try {
