@@ -3904,8 +3904,8 @@ function renderAvisos() {
 
 function renderComFunc() {
   var el = sel('com-func-list'); if(!el) return;
-  // Mostra todos (para "Todos") — futuramente pode filtrar por destinatário
-  var todos = comunicados.filter(function(c){ return c.dest === 'Todos os funcionários' || !c.dest; });
+  var myNome = currentUser ? (currentUser.nome || '') : '';
+  var todos = comunicados.filter(function(c){ return c.dest === 'Todos os funcionários' || !c.dest || c.dest === myNome; });
   if(!todos.length) { el.innerHTML = '<div style="color:#64748b;font-size:13px;padding:10px 0">Nenhum comunicado recebido ainda.</div>'; return; }
   var chLbl = {wz:'via WhatsApp',em:'via E-mail',both:'via WhatsApp + E-mail'};
   el.innerHTML = todos.slice().reverse().map(function(c){
