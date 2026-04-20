@@ -74,18 +74,15 @@ const DOCS_DIR    = isVercel ? '/tmp/uploads/documentos': path.join(__dirname, '
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 });
 
-// ─── Multer ───────────────────────────────────────────────────────────────
-function makeStorage(dest) {
-  return multer.diskStorage({
-    destination: (req, file, cb) => cb(null, dest),
-    filename: (req, file, cb) => {
-      const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
-      cb(null, Date.now() + '_' + safe);
-    }
-  });
+// ─── Multer (memória — base64 salvo no Supabase, sem depender do /tmp) ────
+const memStorage = multer.memoryStorage();
+const uploadAtes = multer({ storage: memStorage, limits: { fileSize: 20 * 1024 * 1024 } });
+const uploadDocs = multer({ storage: memStorage, limits: { fileSize: 20 * 1024 * 1024 } });
+
+function toDataURL(file) {
+  if (!file) return '';
+  return 'data:' + file.mimetype + ';base64,' + file.buffer.toString('base64');
 }
-const uploadAtes = multer({ storage: makeStorage(ATES_DIR), limits: { fileSize: 20 * 1024 * 1024 } });
-const uploadDocs = multer({ storage: makeStorage(DOCS_DIR), limits: { fileSize: 20 * 1024 * 1024 } });
 
 // ─── Security Headers (Helmet) ────────────────────────────────────────────
 app.use(helmet({
@@ -109,7 +106,7 @@ app.use(cors({
 }));
 
 // ─── Middleware ────────────────────────────────────────────────────────────
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '30mb' }));
 app.use('/uploads', express.static(UPLOADS_DIR));
 app.use(express.static(__dirname));
 
@@ -317,7 +314,7 @@ app.post('/api/atestados', authMiddleware, uploadAtes.single('file'), async (req
     const { empId, tipo, dataEmissao, obs } = req.body || {};
     const finalId = req.user.role === 'admin' ? parseInt(empId) : req.user.id;
     const emp = await dbGet('employees', { id: finalId });
-    const fileUrl  = req.file ? '/uploads/atestados/' + req.file.filename : '';
+    const fileUrl  = req.file ? toDataURL(req.file) : '';
     const fileName = req.file ? req.file.originalname : '';
     const today    = new Date().toISOString().split('T')[0];
     const row = await dbInsert('atestados', {
@@ -438,7 +435,7 @@ app.post('/api/documentos', authMiddleware, adminOnly, uploadDocs.single('file')
   try {
     const { empId, tipo, nome, data } = req.body || {};
     const emp = await dbGet('employees', { id: parseInt(empId) });
-    const fileUrl  = req.file ? '/uploads/documentos/' + req.file.filename : '';
+    const fileUrl  = req.file ? toDataURL(req.file) : '';
     const fileName = req.file ? req.file.originalname : '';
     const today    = data || new Date().toISOString().split('T')[0];
     const row = await dbInsert('documentos', {
