@@ -319,7 +319,8 @@ function ateToObj(r) {
     id: r.id, empId: r.emp_id, empNome: r.emp_nome, tipo: r.tipo,
     dataEmissao: r.data_emissao, obs: r.obs,
     fileBase64: r.file_url, fileName: r.file_name,
-    status: r.status, envioDate: r.envio_date
+    status: r.status, envioDate: r.envio_date,
+    motivoRecusa: r.motivo_recusa || '', notifLida: r.notif_lida || false
   };
 }
 
