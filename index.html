@@ -636,11 +636,23 @@ select.inp{color:#94a3b8}
             </div>
             <button class="btn btn-p" onclick="openReqFeriasAdmin()">+ Nova solicitação</button>
           </div>
-          <div class="grid4" style="margin-bottom:20px">
-            <div class="stat" style="cursor:pointer" onclick="openFeriasDetalhe('pendente','Pendentes — Aguardando')"><div class="stat-n" id="fer-stat-pend">0</div><div class="stat-l">Pendentes</div><div class="stat-t" style="color:#fbbf24">aguardando</div><div style="font-size:10px;color:#60a5fa;margin-top:6px">ver detalhes →</div></div>
-            <div class="stat" style="cursor:pointer" onclick="openFeriasDetalhe('aprovado','Aprovadas')"><div class="stat-n" id="fer-stat-aprov">0</div><div class="stat-l">Aprovadas</div><div class="stat-t">aprovado</div><div style="font-size:10px;color:#60a5fa;margin-top:6px">ver detalhes →</div></div>
-            <div class="stat" style="cursor:pointer" onclick="openFeriasDetalhe('em_andamento','Em andamento')"><div class="stat-n" id="fer-stat-and">0</div><div class="stat-l">Em andamento</div><div class="stat-t" style="color:#60a5fa">em curso</div><div style="font-size:10px;color:#60a5fa;margin-top:6px">ver detalhes →</div></div>
-            <div class="stat" style="cursor:pointer" onclick="openFeriasDetalhe('concluido','Concluídas')"><div class="stat-n" id="fer-stat-conc">0</div><div class="stat-l">Concluídas</div><div class="stat-t">finalizadas</div><div style="font-size:10px;color:#60a5fa;margin-top:6px">ver detalhes →</div></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+            <div class="stat" style="display:flex;flex-direction:column;justify-content:space-between">
+              <div><div class="stat-n" id="fer-stat-pend">0</div><div class="stat-l">Pendentes</div><div class="stat-t" style="color:#fbbf24">aguardando</div></div>
+              <button class="btn btn-sm" style="margin-top:10px;width:100%;font-size:11px" onclick="openFeriasDetalhe('pendente','Pendentes')">Ver detalhes</button>
+            </div>
+            <div class="stat" style="display:flex;flex-direction:column;justify-content:space-between">
+              <div><div class="stat-n" id="fer-stat-aprov">0</div><div class="stat-l">Aprovadas</div><div class="stat-t">aprovado</div></div>
+              <button class="btn btn-sm" style="margin-top:10px;width:100%;font-size:11px" onclick="openFeriasDetalhe('aprovado','Aprovadas')">Ver detalhes</button>
+            </div>
+            <div class="stat" style="display:flex;flex-direction:column;justify-content:space-between">
+              <div><div class="stat-n" id="fer-stat-and">0</div><div class="stat-l">Em andamento</div><div class="stat-t" style="color:#60a5fa">em curso</div></div>
+              <button class="btn btn-sm" style="margin-top:10px;width:100%;font-size:11px" onclick="openFeriasDetalhe('em_andamento','Em andamento')">Ver detalhes</button>
+            </div>
+            <div class="stat" style="display:flex;flex-direction:column;justify-content:space-between">
+              <div><div class="stat-n" id="fer-stat-conc">0</div><div class="stat-l">Concluídas</div><div class="stat-t">finalizadas</div></div>
+              <button class="btn btn-sm" style="margin-top:10px;width:100%;font-size:11px" onclick="openFeriasDetalhe('concluido','Concluídas')">Ver detalhes</button>
+            </div>
           </div>
           <div class="card" style="margin-bottom:0">
             <div class="card-row" style="margin-bottom:14px">
