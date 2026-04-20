@@ -255,7 +255,7 @@ select.inp option:checked{background:#2563eb;color:#fff}
 .func-status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:20px;font-size:13px;font-weight:500}
 .ates-status{display:flex;align-items:center;gap:6px;padding:9px 13px;border-radius:8px;font-size:13px;margin-bottom:8px}
 @media(max-width:700px){
-  .sidebar{position:fixed;top:0;left:0;height:calc(100vh - 60px);z-index:201;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.5)}
+  .sidebar{position:fixed;top:0;left:0;height:calc(100vh - 62px);overflow-y:auto;z-index:201;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.5)}
   .sidebar.mob-open{transform:translateX(0)}
   .mob-btn{display:flex;align-items:center;justify-content:center}
   .topbar input{width:120px}
@@ -2085,11 +2085,14 @@ function navTo(pid, sid, title) {
 function bnNav(pid, sid, title, bnId) {
   if (currentUser && currentUser.role === 'admin') {
     var map = {
-      'p-dash-func': ['p-dash', 'si-dash'],
-      'p-ates-func': ['p-ates', 'si-ates'],
-      'p-perfil-func': ['p-config', 'si-config']
+      'p-dash-func': ['p-dash', 'si-dash', 'Início'],
+      'p-ates-func': ['p-ates', 'si-ates', 'Atestados'],
+      'p-ferias':    ['p-ferias', 'si-ferias', 'Férias'],
+      'p-docs':      ['p-docs', 'si-docs', 'Documentos'],
+      'p-perfil-func': ['p-config', 'si-config', 'Configurações']
     };
-    if (map[pid]) { pid = map[pid][0]; sid = map[pid][1] || sid; }
+    var m = map[pid];
+    if (m) { pid = m[0]; sid = m[1]; title = m[2]; }
   }
   navTo(pid, sid, title);
 }
