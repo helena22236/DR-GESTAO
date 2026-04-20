@@ -402,6 +402,18 @@ app.put('/api/ferias/:id/visto', authMiddleware, async (req, res) => {
   } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
 });
 
+app.put('/api/ferias/:id/editar', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { periodoAquiIni, periodoAquiFim, ferIni, ferFim, dias, empresa, obs } = req.body || {};
+    await dbUpdate('ferias', {
+      periodo_aqui_ini: periodoAquiIni||'', periodo_aqui_fim: periodoAquiFim||'',
+      ferias_ini: ferIni||'', ferias_fim: ferFim||'',
+      dias: dias||30, empresa: empresa||'', obs: obs||''
+    }, { id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
 app.put('/api/ferias/:id/status', authMiddleware, adminOnly, async (req, res) => {
   try {
     const { status, obs } = req.body || {};
