@@ -637,8 +637,13 @@ app.put('/api/employees/:id/foto', authMiddleware, async (req, res) => {
 
 // ─── LIXEIRA ─────────────────────────────────────────────────────────────
 async function moverParaLixeira(tipo, dados, excluidoPor) {
-  const excluido_em = new Date().toISOString();
-  await dbInsert('lixeira', { tipo, dados: JSON.stringify(dados), excluido_por: excluidoPor, excluido_em });
+  try {
+    const excluido_em = new Date().toISOString();
+    await dbInsert('lixeira', { tipo, dados: JSON.stringify(dados), excluido_por: excluidoPor, excluido_em });
+  } catch(e) {
+    // Tabela lixeira pode não existir ainda — não bloqueia o delete
+    console.warn('lixeira não disponível:', e.message);
+  }
 }
 
 app.get('/api/lixeira', authMiddleware, adminOnly, async (req, res) => {
