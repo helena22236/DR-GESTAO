@@ -207,12 +207,44 @@ app.post('/api/auth/login-social', async (req, res) => {
   try {
     const { email } = req.body || {};
     if (!email) return res.status(400).json({ message: 'E-mail necessário' });
-    const { data: emp } = await db.from('employees').select('*').ilike('email', email).limit(1).single();
+    const { data: emp } = await db.from('employees').select('*').ilike('email', email).limit(1).maybeSingle();
     if (!emp)                      return res.status(404).json({ message: 'Conta não encontrada', code: 'NOT_FOUND' });
     if (emp.status === 'inativo')  return res.status(403).json({ message: 'Acesso bloqueado', code: 'INATIVO' });
     if (emp.status === 'pendente') return res.status(403).json({ message: 'Aguardando aprovação', code: 'PENDENTE' });
     res.json({ token: signToken(emp), user: { id: emp.id, nome: emp.nome, role: emp.role, email: emp.email } });
   } catch (e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.post('/api/auth/register-google', async (req, res) => {
+  try {
+    const { email, nome, cpf, tel, nasc } = req.body || {};
+    if (!nome || !cpf || !email || !tel || !nasc)
+      return res.status(400).json({ message: 'Preencha todos os campos obrigatórios.' });
+    if (!validarCPF(cpf.replace(/\D/g,'')))
+      return res.status(400).json({ message: 'CPF inválido.' });
+    const { data: exists } = await db.from('employees').select('id')
+      .or(`email.ilike.${email},cpf.eq.${cpf.replace(/\D/g,'')}`).limit(1).maybeSingle();
+    if (exists) return res.status(409).json({ message: 'E-mail ou CPF já cadastrado.' });
+    const count = await dbCount('employees');
+    await dbInsert('employees', {
+      nome: nome.toUpperCase(), cpf: cpf.replace(/\D/g,''), email: email.toLowerCase(),
+      senha: '', tel, nasc,
+      role: count === 0 ? 'admin' : 'funcionario',
+      status: count === 0 ? 'ativo' : 'pendente',
+      cargo: '', sexo: '', estado: '', dept: '', adm: '', contrato: '',
+      empresa: '', mae: '', pai: '', en: '', ep: '', et: '', ew: '', foto: '', av: 0
+    });
+    res.json({ success: true });
+  } catch(e) { console.error(e); res.status(500).json({ message: 'Erro interno' }); }
+});
+
+app.get('/api/config/public', async (req, res) => {
+  try {
+    const rows = await dbAll('config');
+    const cfg = {};
+    rows.forEach(r => { cfg[r.key] = r.value; });
+    res.json({ googleClientId: cfg.googleClientId || '' });
+  } catch(e) { res.json({ googleClientId: '' }); }
 });
 
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
