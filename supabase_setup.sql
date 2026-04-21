@@ -43,7 +43,9 @@ CREATE TABLE IF NOT EXISTS atestados (
   file_url      TEXT    NOT NULL DEFAULT '',   -- caminho do arquivo
   file_name     TEXT    NOT NULL DEFAULT '',
   status        TEXT    NOT NULL DEFAULT 'pendente', -- 'pendente' | 'aprovado' | 'recusado'
-  envio_date    TEXT    NOT NULL DEFAULT ''
+  envio_date    TEXT    NOT NULL DEFAULT '',
+  motivo_recusa TEXT    NOT NULL DEFAULT '',
+  notif_lida    BOOLEAN NOT NULL DEFAULT false
 );
 
 -- ─── 3. DOCUMENTOS ───────────────────────────────────────────
