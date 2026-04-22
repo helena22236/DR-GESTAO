@@ -1850,6 +1850,7 @@ async function doLogin(modo) {
 const APPLE_SERVICE_ID   = 'CONFIGURE_APPLE_SERVICE_ID';
 const APPLE_REDIRECT_URI = window.location.origin + window.location.pathname;
 var _gcid = '';
+var _googleInitDone = false;
 
 (async function loadPublicConfig() {
   try {
@@ -1870,20 +1871,26 @@ function googleScriptLoaded() { maybeInitGoogle(); }
 
 function maybeInitGoogle() {
   if (!_gcid || typeof google === 'undefined' || !google.accounts || !google.accounts.id) return;
-  google.accounts.id.initialize({
-    client_id: _gcid,
-    callback: function(response) {
-      try {
-        var parts = response.credential.split('.');
-        var pad = parts[1].replace(/-/g,'+').replace(/_/g,'/');
-        while(pad.length % 4) pad += '=';
-        var payload = JSON.parse(atob(pad));
-        loginBySocialGoogle(payload.email, payload.name || '');
-      } catch(e) { showErr('l-err-social'); }
-    }
-  });
+
+  if (!_googleInitDone) {
+    _googleInitDone = true;
+    google.accounts.id.initialize({
+      client_id: _gcid,
+      ux_mode: 'popup',
+      callback: function(response) {
+        try {
+          var parts = response.credential.split('.');
+          var pad = parts[1].replace(/-/g,'+').replace(/_/g,'/');
+          while(pad.length % 4) pad += '=';
+          var payload = JSON.parse(atob(pad));
+          loginBySocialGoogle(payload.email, payload.name || '');
+        } catch(e) { showErr('l-err-social'); }
+      }
+    });
+  }
+
   var container = sel('google-signin-container');
-  if (container) {
+  if (container && !container.querySelector('iframe')) {
     container.innerHTML = '';
     var w = (sel('auth-box') || document.querySelector('.auth-box'));
     var btnW = w ? Math.min(w.offsetWidth - 72, 360) : 340;
@@ -1943,31 +1950,6 @@ async function submitGoogleCompletarForm() {
   } catch(e) { gcErr(e.message || 'Erro ao cadastrar.'); }
 }
 
-function googleLogin() {
-  var clientId = dpConfig.googleClientId;
-  if(!clientId) { showErr('l-err-naocfg'); return; }
-  if(typeof google === 'undefined' || !google.accounts) { showErr('l-err-social'); return; }
-  google.accounts.id.initialize({
-    client_id: clientId,
-    callback: function(response) {
-      try {
-        var parts = response.credential.split('.');
-        var pad = parts[1].replace(/-/g,'+').replace(/_/g,'/');
-        while(pad.length % 4) pad += '=';
-        var payload = JSON.parse(atob(pad));
-        loginBySocialGoogle(payload.email, payload.name || '');
-      } catch(e) { showErr('l-err-social'); }
-    },
-    ux_mode: 'popup'
-  });
-  google.accounts.id.prompt(function(n){
-    if(n.isNotDisplayed() || n.isSkippedMoment()) {
-      var div = document.createElement('div');
-      google.accounts.id.renderButton(div, {theme:'outline', size:'large'});
-      div.querySelector('div[role=button]') && div.querySelector('div[role=button]').click();
-    }
-  });
-}
 
 function appleLogin() {
   if(APPLE_SERVICE_ID === 'CONFIGURE_APPLE_SERVICE_ID') {

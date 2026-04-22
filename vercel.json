@@ -7,5 +7,14 @@
       "config": { "includeFiles": ["index.html", "manifest.json", "icon.svg", "icon.png", "bg-login.png"] }
     }
   ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "unsafe-none" },
+        { "key": "Cross-Origin-Embedder-Policy", "value": "unsafe-none" }
+      ]
+    }
+  ],
   "routes": [{ "src": "/(.*)", "dest": "server.js" }]
 }

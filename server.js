@@ -107,7 +107,8 @@ function toDataURL(file) {
 // ─── Security Headers (Helmet) ────────────────────────────────────────────
 app.use(helmet({
   contentSecurityPolicy: false,     // CSP desativado — app usa inline JS/CSS extensivamente
-  crossOriginEmbedderPolicy: false
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false    // necessário para o popup do Google Sign-In funcionar
 }));
 
 // ─── CORS ─────────────────────────────────────────────────────────────────
