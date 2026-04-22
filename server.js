@@ -640,14 +640,8 @@ app.post('/api/avisos/email-todos', authMiddleware, adminOnly, async (req, res) 
 
     let enviados = 0;
     for (const to of emails) {
-      const { error } = await resend.emails.send({
-        from: 'DP Gestão <onboarding@resend.dev>',
-        to,
-        subject: assunto,
-        html
-      });
-      if (error) console.error('Erro ao enviar para', to, error);
-      else enviados++;
+      const ok = await enviarEmail(to, assunto, html);
+      if (ok) enviados++;
     }
 
     res.json({ success: true, enviados });
