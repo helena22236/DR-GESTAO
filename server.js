@@ -30,13 +30,15 @@ const mailer = nodemailer.createTransport({
 
 async function enviarEmail(to, subject, html) {
   try {
+    console.log('[email] enviando para', to, '| user:', process.env.GMAIL_USER, '| pass configurado:', !!process.env.GMAIL_PASS);
     await mailer.sendMail({
       from: '"3B Gestão" <3bgestao@gmail.com>',
       to, subject, html
     });
+    console.log('[email] enviado com sucesso para', to);
     return true;
   } catch(e) {
-    console.error('Erro ao enviar email para', to, e.message);
+    console.error('[email] ERRO ao enviar para', to, ':', e.message);
     return false;
   }
 }
@@ -678,7 +680,9 @@ app.post('/api/comunicados', authMiddleware, adminOnly, async (req, res) => {
         <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">
         <p style="color:#94a3b8;font-size:12px">3B Gestão — Sistema de Gestão de Pessoal</p>
       </div>`;
-      for (const to of emails) await enviarEmail(to, titulo, html);
+      let emailErros = 0;
+      for (const to of emails) { const ok = await enviarEmail(to, titulo, html); if (!ok) emailErros++; }
+      if (emailErros > 0) console.warn('[comunicados] falhas no envio:', emailErros, 'de', emails.length);
     }
 
     res.json({ id: row.id, titulo, msg: msg||'', dest: dest||'', ch: ch||'wz', data });
