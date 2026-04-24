@@ -2223,8 +2223,8 @@ function navTo(pid, sid, title) {
   if(pid === 'p-ates') renderAtesAdmin();
   if(pid === 'p-config') renderConfig();
   if(pid === 'p-empresas') renderEmpresas();
-  if(pid === 'p-pdf') renderDocsEnviados();
-  if(pid === 'p-docs') renderMeusDocs();
+  if(pid === 'p-pdf') { api('GET','/api/documentos').then(function(d){ documentos=d; renderDocsEnviados(); }).catch(function(){ renderDocsEnviados(); }); }
+  if(pid === 'p-docs') { api('GET','/api/documentos').then(function(d){ documentos=d; renderMeusDocs(); renderFuncUltimoHolerite(); renderFuncDocsRecentes(); }).catch(function(){ renderMeusDocs(); }); }
   if(pid === 'p-com') renderComHistorico();
   if(pid === 'p-com-func') renderComFunc();
   if(pid === 'p-avisos') renderAvisos();
